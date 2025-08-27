@@ -37,7 +37,7 @@ This project is developed as part of **SE3022 – Case Study Project (Year 3, Se
 ---
 
 ## 📂 Project Structure
-
+```
 stms-group-project/
 ├── frontend/ # React.js code
 ├── backend/ # ASP.NET Web API code
@@ -47,7 +47,7 @@ stms-group-project/
 ├── .github/ # CI/CD workflows (GitHub Actions)
 └── README.md # Project documentation
 
----
+```
 
 ## 🛠️ Setup Instructions
 
