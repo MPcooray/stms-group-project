@@ -37,22 +37,15 @@ This project is developed as part of **SE3022 – Case Study Project (Year 3, Se
 ---
 
 ## 📂 Project Structure
+
 stms-group-project/
-
-│── frontend/ # React.js code
-
-│── backend/ # ASP.NET Web API code
-
-│── database/ # SQL scripts for schema & seed data
-
-│── tests/ # Unit & integration tests
-
-│── docs/ # SRS, diagrams, reports
-
-│── .github/ # CI/CD workflows (GitHub Actions)
-
-│── README.md # Project documentation
-
+├── frontend/ # React.js code
+├── backend/ # ASP.NET Web API code
+├── database/ # SQL scripts for schema & seed data
+├── tests/ # Unit & integration tests
+├── docs/ # SRS, diagrams, reports
+├── .github/ # CI/CD workflows (GitHub Actions)
+└── README.md # Project documentation
 
 ---
 
