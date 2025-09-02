@@ -1,0 +1,6 @@
+@STMS.Api_HostAddress = http://localhost:5287
+
+GET {{STMS.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
