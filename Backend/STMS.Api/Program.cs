@@ -15,9 +15,18 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // CORS (allow your React app)
-var corsOrigin = builder.Configuration["CORS_ORIGIN"] ?? "http://localhost:5173";
+var origins = (builder.Configuration["CORS_ORIGIN"] ?? "")
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    
+if (origins.Length == 0)
+    origins = new[] { "http://localhost:5173" };
+
 builder.Services.AddCors(o => o.AddPolicy("ui", p =>
-    p.WithOrigins(corsOrigin).AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
+    p.WithOrigins(origins)
+     .AllowAnyHeader()
+     .AllowAnyMethod()
+     .AllowCredentials()));
+
 
 // JWT Auth
 var jwtSecret = builder.Configuration["JWT:Secret"] ?? "dev-placeholder-CHANGE-ME";

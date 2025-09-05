@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/3fc7e605-ea8b-4374-9cdf-fa8d1866b23f/resourceGroups/stms/providers/Microsoft.Web/sites/stms-api-nadil",
+    "appService.deploySubpath": "Backend"
+}
