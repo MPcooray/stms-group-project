@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using STMS.Api.Data;
 
 #nullable disable
 
@@ -21,7 +22,7 @@ namespace STMS.Api.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
-            modelBuilder.Entity("Admin", b =>
+            modelBuilder.Entity("STMS.Api.Models.Admin", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -30,22 +31,29 @@ namespace STMS.Api.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Admins");
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("Admins", (string)null);
                 });
 
-            modelBuilder.Entity("Player", b =>
+            modelBuilder.Entity("STMS.Api.Models.Player", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -57,26 +65,30 @@ namespace STMS.Api.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Event")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(120)
+                        .HasColumnType("varchar(120)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(160)
+                        .HasColumnType("varchar(160)");
 
                     b.Property<int>("UniversityId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UniversityId");
+                    b.HasIndex("UniversityId", "Name");
 
-                    b.ToTable("Players");
+                    b.ToTable("Players", (string)null);
                 });
 
-            modelBuilder.Entity("Timing", b =>
+            modelBuilder.Entity("STMS.Api.Models.Timing", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -85,11 +97,14 @@ namespace STMS.Api.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Event")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(120)
+                        .HasColumnType("varchar(120)");
 
                     b.Property<int>("PlayerId")
                         .HasColumnType("int");
@@ -99,12 +114,12 @@ namespace STMS.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PlayerId");
+                    b.HasIndex("PlayerId", "Event");
 
-                    b.ToTable("Timings");
+                    b.ToTable("Timings", (string)null);
                 });
 
-            modelBuilder.Entity("Tournament", b =>
+            modelBuilder.Entity("STMS.Api.Models.Tournament", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -113,24 +128,31 @@ namespace STMS.Api.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<DateTime?>("Date")
-                        .HasColumnType("datetime(6)");
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("date");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(120)
+                        .HasColumnType("varchar(120)");
 
                     b.Property<string>("Venue")
-                        .HasColumnType("longtext");
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("varchar(120)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Tournaments");
+                    b.HasIndex("Date", "Venue");
+
+                    b.ToTable("Tournaments", (string)null);
                 });
 
-            modelBuilder.Entity("University", b =>
+            modelBuilder.Entity("STMS.Api.Models.University", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -139,25 +161,28 @@ namespace STMS.Api.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(160)
+                        .HasColumnType("varchar(160)");
 
                     b.Property<int>("TournamentId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TournamentId");
+                    b.HasIndex("TournamentId", "Name");
 
-                    b.ToTable("Universities");
+                    b.ToTable("Universities", (string)null);
                 });
 
-            modelBuilder.Entity("Player", b =>
+            modelBuilder.Entity("STMS.Api.Models.Player", b =>
                 {
-                    b.HasOne("University", "University")
+                    b.HasOne("STMS.Api.Models.University", "University")
                         .WithMany()
                         .HasForeignKey("UniversityId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -166,9 +191,9 @@ namespace STMS.Api.Migrations
                     b.Navigation("University");
                 });
 
-            modelBuilder.Entity("Timing", b =>
+            modelBuilder.Entity("STMS.Api.Models.Timing", b =>
                 {
-                    b.HasOne("Player", "Player")
+                    b.HasOne("STMS.Api.Models.Player", "Player")
                         .WithMany()
                         .HasForeignKey("PlayerId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -177,9 +202,9 @@ namespace STMS.Api.Migrations
                     b.Navigation("Player");
                 });
 
-            modelBuilder.Entity("University", b =>
+            modelBuilder.Entity("STMS.Api.Models.University", b =>
                 {
-                    b.HasOne("Tournament", "Tournament")
+                    b.HasOne("STMS.Api.Models.Tournament", "Tournament")
                         .WithMany()
                         .HasForeignKey("TournamentId")
                         .OnDelete(DeleteBehavior.Cascade)
