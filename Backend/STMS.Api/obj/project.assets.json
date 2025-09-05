@@ -3614,19 +3614,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Cooray\\.nuget\\packages\\": {}
+    "/Users/nadildulran/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\MANULA\\SLIIT\\Y3S1\\Case Study Project\\project\\stms\\Backend\\STMS.Api\\STMS.Api.csproj",
+      "projectUniqueName": "/Users/nadildulran/MyWork/STMS/Database/stms-group-project/Backend/STMS.Api/STMS.Api.csproj",
       "projectName": "STMS.Api",
-      "projectPath": "D:\\MANULA\\SLIIT\\Y3S1\\Case Study Project\\project\\stms\\Backend\\STMS.Api\\STMS.Api.csproj",
-      "packagesPath": "C:\\Users\\Cooray\\.nuget\\packages\\",
-      "outputPath": "D:\\MANULA\\SLIIT\\Y3S1\\Case Study Project\\project\\stms\\Backend\\STMS.Api\\obj\\",
+      "projectPath": "/Users/nadildulran/MyWork/STMS/Database/stms-group-project/Backend/STMS.Api/STMS.Api.csproj",
+      "packagesPath": "/Users/nadildulran/.nuget/packages/",
+      "outputPath": "/Users/nadildulran/MyWork/STMS/Database/stms-group-project/Backend/STMS.Api/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Cooray\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "/Users/nadildulran/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net9.0"
@@ -3702,7 +3702,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.304/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
