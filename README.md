@@ -117,5 +117,3 @@ This project is developed for academic purposes under the SE3022 – Case Study 
 - CI/CD mention (aligns with assignment goals:contentReference[oaicite:0]{index=0}).  
 
 ---
-
-Do you want me to also **add badges** (build status, license, contributors) at the top of the README so
