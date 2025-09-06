@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Pomelo.EntityFrameworkCore.MySql;
 using System.Text;
-
+using Microsoft.OpenApi.Models;
 // ------------------- builder -------------------
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +12,34 @@ builder.Services.AddControllers();
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "STMS.Api", Version = "v1" });
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT auth using Bearer. Example: Bearer {token}",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 // CORS (allow your React app)
 var origins = (builder.Configuration["CORS_ORIGIN"] ?? "")
@@ -44,9 +71,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// EF Core (MySQL) — using OnConfiguring in DbContext below
-builder.Services.AddDbContext<StmsDbContext>();
+// EF Core (MySQL) — use DI + appsettings (Azure MySQL)
+var cs = builder.Configuration.GetConnectionString("Default")
+         ?? throw new InvalidOperationException("ConnectionStrings:Default is missing.");
 
+var serverVersion = new MySqlServerVersion(new Version(8, 0, 36));
+
+builder.Services.AddDbContext<StmsDbContext>(options =>
+    options.UseMySql(cs, serverVersion, my =>
+    {
+        my.CommandTimeout(60);
+        // Transient retry policy (Azure-friendly)
+        my.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorNumbersToAdd: null);
+    }));
 // ------------------- app -------------------
 var app = builder.Build();
 
@@ -61,8 +101,13 @@ app.UseAuthorization();
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
 // 🔎 TEMP: list admins the API can see (confirm DB/connection)
-app.MapGet("/_debug/admins", (StmsDbContext db) =>
-    Results.Ok(db.Admins.Select(a => new { a.Id, a.Email }).ToList()));
+app.MapGet("/_debug/admins", async (StmsDbContext db) =>
+{
+    var rows = await db.Admins
+        .Select(a => new { a.Id, a.Email })
+        .ToListAsync();
+    return Results.Ok(rows);
+});
 
 // 🔐 TEMP: generate a bcrypt hash for any password
 app.MapGet("/_dev/hash/{pwd}", (string pwd) =>
@@ -79,23 +124,9 @@ app.Run();
 // ------------------- EF Core DbContext & Models -------------------
 public class StmsDbContext : DbContext
 {
-    private readonly IConfiguration _cfg;
-    public StmsDbContext(DbContextOptions<StmsDbContext> options, IConfiguration cfg) : base(options)
-    {
-        _cfg = cfg;
-    }
+    public StmsDbContext(DbContextOptions<StmsDbContext> options) : base(options) { }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        if (!optionsBuilder.IsConfigured)
-        {
-            // if nothing in appsettings, this fallback is used
-            var cs = _cfg.GetConnectionString("Default")
-                     ?? "server=localhost;port=3306;database=stms;user=root;password=;";
-            optionsBuilder.UseMySql(cs, ServerVersion.AutoDetect(cs));
-        }
-    }
-
+    // NOTE: We intentionally removed OnConfiguring so it cannot fall back to localhost.
     public DbSet<Admin> Admins => Set<Admin>();
     public DbSet<Tournament> Tournaments => Set<Tournament>();
     public DbSet<University> Universities => Set<University>();
