@@ -6,7 +6,6 @@ namespace STMS.Api.Models
         public string Name { get; set; } = "";
         public int UniversityId { get; set; }
         public University? University { get; set; }
-        public string? Event { get; set; }
         public int? Age { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

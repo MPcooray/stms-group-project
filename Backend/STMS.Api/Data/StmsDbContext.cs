@@ -12,6 +12,8 @@ namespace STMS.Api.Data
         public DbSet<University> Universities => Set<University>();
         public DbSet<Player> Players => Set<Player>();
         public DbSet<Timing> Timings => Set<Timing>();
+        public DbSet<PlayerEvent> PlayerEvents => Set<PlayerEvent>();
+
 
         protected override void OnModelCreating(ModelBuilder model)
         {
@@ -53,7 +55,6 @@ namespace STMS.Api.Data
                 e.ToTable("Players");
                 e.HasKey(x => x.Id);
                 e.Property(x => x.Name).IsRequired().HasMaxLength(160);
-                e.Property(x => x.Event).HasMaxLength(120);
                 e.Property(x => x.CreatedAt).HasColumnType("datetime").HasDefaultValueSql("CURRENT_TIMESTAMP");
                 e.HasOne(x => x.University).WithMany().HasForeignKey(x => x.UniversityId).OnDelete(DeleteBehavior.Cascade);
                 e.HasIndex(x => new { x.UniversityId, x.Name });
@@ -68,6 +69,22 @@ namespace STMS.Api.Data
                 e.Property(x => x.CreatedAt).HasColumnType("datetime").HasDefaultValueSql("CURRENT_TIMESTAMP");
                 e.HasOne(x => x.Player).WithMany().HasForeignKey(x => x.PlayerId).OnDelete(DeleteBehavior.Cascade);
                 e.HasIndex(x => new { x.PlayerId, x.Event });
+            });
+
+            model.Entity<PlayerEvent>(e =>
+            {
+                e.ToTable("PlayerEvents");
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Event).IsRequired().HasMaxLength(120);
+                e.Property(x => x.CreatedAt).HasColumnType("datetime")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                e.HasOne(x => x.Player)
+                    .WithMany()
+                    .HasForeignKey(x => x.PlayerId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // One player should not be registered twice for the same event
+                e.HasIndex(x => new { x.PlayerId, x.Event }).IsUnique();
             });
         }
     }
