@@ -1,14 +1,15 @@
-// D:\stms-group-project\frontend\src\main.jsx
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
-import App from './App.jsx'
-import './index.css'
+// src/App.jsx
+import { Routes, Route, Navigate } from 'react-router-dom'
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </React.StrictMode>
-)
+function Home() { 
+  return <div style={{ padding: 24, fontSize: 18 }}>Hello STMS 👋</div>
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  )
+}
