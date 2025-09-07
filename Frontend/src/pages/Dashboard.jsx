@@ -1,15 +1,25 @@
-import { useAuth } from '../context/AuthContext.jsx'
+import DashboardLayout from "../components/DashboardLayout.jsx"
 
-export default function Dashboard(){
-  const { user, logout } = useAuth()
+export default function Dashboard() {
   return (
-    <div className="container">
-      <div className="card">
-        <h2>Welcome, {user?.email || 'Admin'} 👋</h2>
-        <p className="muted">Use the sidebar to manage tournaments and players.</p>
-        <div className="space"></div>
-        <button className="btn ghost" onClick={logout}>Logout</button>
+    <DashboardLayout>
+      <div className="container">
+        <div className="card">
+          <h2>Dashboard Overview</h2>
+          <p className="muted">Welcome to the Swimming Tournament Management System.</p>
+          <div className="space"></div>
+          <div className="row">
+            <div className="card" style={{ flex: 1 }}>
+              <h3>Quick Stats</h3>
+              <p className="muted">System statistics will appear here.</p>
+            </div>
+            <div className="card" style={{ flex: 1 }}>
+              <h3>Recent Activity</h3>
+              <p className="muted">Recent tournament and player activities.</p>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </DashboardLayout>
   )
 }
