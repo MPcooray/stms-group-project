@@ -5,13 +5,21 @@ import Login from "./pages/Login.jsx"
 import Dashboard from "./pages/Dashboard.jsx"
 import Players from "./pages/Players.jsx"
 import Tournaments from "./pages/Tournaments.jsx"
+import EventTimings from "./pages/EventTimings.jsx"
+import Universities from "./pages/Universities.jsx"
 
 export default function App() {
   return (
     <AuthProvider>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route
+        <Route path="/Dashboard" element={<Dashboard />} />
+        <Route path="/players" element={<Players />} />
+        <Route path="/tournaments" element={<Tournaments />} />
+        <Route path="/eventTimings" element={<EventTimings />} />
+        <Route path="/universities/:tournamentId" element={<Universities />} />
+        <Route path="/universities/:tournamentId/:universityId/players" element={<Players />} />
+        {/*<Route
           path="/dashboard"
           element={
             <ProtectedRoute>
@@ -34,9 +42,9 @@ export default function App() {
               <Tournaments />
             </ProtectedRoute>
           }
-        />
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        /> */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </AuthProvider>
   )

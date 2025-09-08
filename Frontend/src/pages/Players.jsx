@@ -1,12 +1,11 @@
-"use client"
-
 import { useEffect, useState } from "react"
-import { listPlayers, createPlayer, updatePlayer, deletePlayer } from "../services/playerService.js"
+import { useParams } from "react-router-dom"
 import DashboardLayout from "../components/DashboardLayout.jsx"
 
 const empty = { name: "", university: "", gender: "Male", age: "" }
 
 export default function Players() {
+  const { tournamentId, universityId } = useParams()
   const [items, setItems] = useState([])
   const [form, setForm] = useState(empty)
   const [editingId, setEditingId] = useState(null)
@@ -15,15 +14,29 @@ export default function Players() {
   const load = async () => {
     setStatus("")
     try {
-      const data = await listPlayers()
-      setItems(Array.isArray(data) ? data : [])
+      // Simulate API call with dummy data based on tournamentId and universityId
+      const dummyData = {
+        "1-1": [
+          { id: 1, name: "John Doe", university: "University A", gender: "Male", age: 20 },
+          { id: 2, name: "Jane Smith", university: "University A", gender: "Female", age: 22 },
+        ],
+        "1-2": [],
+        "2-3": [
+          { id: 3, name: "Mike Lee", university: "University C", gender: "Male", age: 19 },
+        ],
+        "2-4": [],
+      }
+      const key = `${tournamentId}-${universityId}`
+      const data = dummyData[key] || []
+      setItems(data)
     } catch {
       setStatus("Failed to load players")
     }
   }
+
   useEffect(() => {
     load()
-  }, [])
+  }, [tournamentId, universityId])
 
   const onSubmit = async (e) => {
     e.preventDefault()
@@ -81,7 +94,7 @@ export default function Players() {
   return (
     <DashboardLayout>
       <div className="container">
-        <h2>Players</h2>
+        <h2>Players for University ID: {universityId} (Tournament ID: {tournamentId})</h2>
         <div className="row">
           <div className="card" style={{ flex: 1, minWidth: 320 }}>
             <h3>{editingId ? "Edit Player" : "Create Player"}</h3>
@@ -90,7 +103,7 @@ export default function Players() {
               <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
               <div className="space"></div>
               <label>University</label>
-              <input value={form.university} onChange={(e) => setForm({ ...form, university: e.target.value })} />
+              <input value={form.university} readOnly />
               <div className="space"></div>
               <label>Gender</label>
               <select value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}>

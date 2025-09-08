@@ -21,9 +21,23 @@ export default function Tournaments() {
       setStatus("Failed to load tournaments")
     }
   }
+  
+  {/*
   useEffect(() => {
     load()
   }, [])
+*/}
+
+// Dummy data if API fails
+  useEffect(() => {
+  load();
+  if (items.length === 0) {
+    setItems([
+      { id: 1, name: "Summer Swim Meet", location: "Miami", startDate: "2025-09-10", endDate: "2025-09-12" },
+      { id: 2, name: "Winter Championships", location: "Boston", startDate: "2025-12-01", endDate: "2025-12-03" },
+    ]);
+  }
+}, []);
 
   const onSubmit = async (e) => {
     e.preventDefault()
