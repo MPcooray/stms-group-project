@@ -3,21 +3,24 @@
 :root {
   --bg: #0b1220;
   --panel: #111a2b;
-  --muted: #7c8aa6;
+  --muted: #a3bffa;
   --text: #e6edf7;
   --accent: #2ea0ff;
   --danger: #ff5a5f;
   --success: #2ecc71;
+  --header: #00ccff;
 }
+
 * {
   box-sizing: border-box;
 }
 body {
   margin: 0;
   font-family: system-ui, Segoe UI, Roboto, Helvetica, Arial;
+  color: var(--text);
 }
 a {
-  color: var(--accent);
+  color: var(--text);
   text-decoration: none;
 }
 .container {
@@ -41,23 +44,45 @@ a {
   border: 0;
   border-radius: 10px;
   cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease; /* Smooth transition */
+}
+.btn:hover {
+  background-color: #1a2332; /* Darker shade for default hover */
+  color: var(--text);
 }
 .btn.primary {
   background: var(--accent);
   color: #06101f;
   font-weight: 700;
 }
+.btn.primary:hover {
+  background-color: #1e87f0; /* Slightly darker accent shade */
+  color: #06101f;
+}
 .btn.ghost {
   background: transparent;
   border: 1px solid var(--muted);
   color: var(--text);
 }
+.btn.ghost:hover {
+  background-color: #a3bffa; /* Muted color as background on hover */
+  color: #06101f;
+  border-color: #a3bffa;
+}
 .btn.danger {
   background: var(--danger);
   color: #fff;
 }
+.btn.danger:hover {
+  background-color: #e04e53; /* Darker danger shade */
+  color: #fff;
+}
 .btn.success {
   background: var(--success);
+  color: #06101f;
+}
+.btn.success:hover {
+  background-color: #27b263; /* Darker success shade */
   color: #06101f;
 }
 input,
@@ -83,8 +108,15 @@ td {
   padding: 10px;
   border-bottom: 1px solid #1f2b44;
   text-align: left;
+  color: var(--text);
 }
 th {
+  color: var(--muted);
+}
+h2, h3 {
+  color: var(--header);
+}
+.muted {
   color: var(--muted);
 }
 .space {
@@ -123,7 +155,6 @@ th {
 }
 .navbar-user span {
   color: var(--muted);
-  font-size: 0.9rem;
 }
 
 /* Sidebar Styles */
@@ -222,3 +253,25 @@ th {
   }
 }
 
+/* Tournament List Styles */
+.tournament-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tournament-list li {
+  margin-bottom: 0.5rem;
+}
+
+.tournament-list a {
+  color: var(--text);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.tournament-list a:hover {
+  background: #1a2332;
+  color: var(--text);
+  border-radius: 8px;
+}
