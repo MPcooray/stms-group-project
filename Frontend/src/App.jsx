@@ -5,6 +5,7 @@ import Login from "./pages/Login.jsx"
 import Dashboard from "./pages/Dashboard.jsx"
 import Players from "./pages/Players.jsx"
 import Tournaments from "./pages/Tournaments.jsx"
+import Events from "./pages/Events.jsx"
 import EventTimings from "./pages/EventTimings.jsx"
 import Universities from "./pages/Universities.jsx"
 
@@ -16,9 +17,12 @@ export default function App() {
         <Route path="/Dashboard" element={<Dashboard />} />
         <Route path="/players" element={<Players />} />
         <Route path="/tournaments" element={<Tournaments />} />
-        <Route path="/eventTimings" element={<EventTimings />} />
+        
         <Route path="/universities/:tournamentId" element={<Universities />} />
         <Route path="/universities/:tournamentId/:universityId/players" element={<Players />} />
+        <Route path="/events/:tournamentId" element={<Events />} />
+        <Route path="/events/:tournamentId/:eventId/timings" element={<EventTimings />} />
+       
         {/*<Route
           path="/dashboard"
           element={

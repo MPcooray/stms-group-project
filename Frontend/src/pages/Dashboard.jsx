@@ -17,19 +17,35 @@ export default function Dashboard() {
           <div className="row">
             <div className="card" style={{ flex: 1 }}>
               <h3>Select Tournament</h3>
-              <ul className="tournament-list">
-                {tournaments.map((tournament) => (
-                  <li key={tournament.id}>
-                    <Link
-                      to={`/universities/${tournament.id}`}
-                      className="sidebar-link"
-                      style={{ display: "block", padding: "0.5rem 1rem" }}
-                    >
-                      {tournament.name} ({tournament.location}, {tournament.startDate} to {tournament.endDate})
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Location</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tournaments.map((tournament) => (
+                    <tr key={tournament.id}>
+                      <td>{tournament.name}</td>
+                      <td>{tournament.location}</td>
+                      <td>{tournament.startDate}</td>
+                      <td>{tournament.endDate}</td>
+                      <td>
+                        <Link to={`/universities/${tournament.id}`} className="btn ghost">
+                          Universities
+                        </Link>{" "}
+                        <Link to={`/events/${tournament.id}`} className="btn ghost">
+                          Events
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
             <div className="card" style={{ flex: 1 }}>
               <Link to="/tournaments" className="btn primary">
