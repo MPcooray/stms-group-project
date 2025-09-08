@@ -47,11 +47,6 @@ export default function Dashboard() {
                 </tbody>
               </table>
             </div>
-            <div className="card" style={{ flex: 1 }}>
-              <Link to="/tournaments" className="btn primary">
-                Add Tournament
-              </Link>
-            </div>
           </div>
         </div>
       </div>
