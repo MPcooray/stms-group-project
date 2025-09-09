@@ -15,7 +15,7 @@ namespace STMS.Api.Controllers
         private readonly StmsDbContext _db;
         public PlayersController(StmsDbContext db) => _db = db;
 
-        public record PlayerDto(int Id, string Name, int UniversityId, int? Age);
+    public record PlayerDto(int Id, string Name, int UniversityId, int? Age, string? Gender);
 
         public class PlayerUpsertDto
         {
@@ -24,6 +24,9 @@ namespace STMS.Api.Controllers
 
             [Range(1, 120)]
             public int? Age { get; set; }
+
+            [MaxLength(20)]
+            public string? Gender { get; set; }
         }
 
         // GET /api/universities/{universityId}/players
@@ -36,7 +39,7 @@ namespace STMS.Api.Controllers
             var list = await _db.Players.AsNoTracking()
                 .Where(p => p.UniversityId == universityId)
                 .OrderBy(p => p.Name)
-                .Select(p => new PlayerDto(p.Id, p.Name, p.UniversityId, p.Age))
+                .Select(p => new PlayerDto(p.Id, p.Name, p.UniversityId, p.Age, p.Gender))
                 .ToListAsync();
 
             return Ok(list);
@@ -57,11 +60,11 @@ namespace STMS.Api.Controllers
                 .AnyAsync(p => p.UniversityId == universityId && p.Name == name);
             if (dup) return Conflict(new { error = "Player already exists in this university" });
 
-            var p = new Player { Name = name, UniversityId = universityId, Age = body.Age };
+            var p = new Player { Name = name, UniversityId = universityId, Age = body.Age, Gender = body.Gender };
             _db.Players.Add(p);
             await _db.SaveChangesAsync();
 
-            var dto = new PlayerDto(p.Id, p.Name, p.UniversityId, p.Age);
+            var dto = new PlayerDto(p.Id, p.Name, p.UniversityId, p.Age, p.Gender);
             return CreatedAtAction(nameof(GetById), new { id = p.Id }, dto);
         }
 
@@ -70,7 +73,7 @@ namespace STMS.Api.Controllers
         public async Task<ActionResult<PlayerDto>> GetById(int id)
         {
             var p = await _db.Players.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
-            return p is null ? NotFound() : Ok(new PlayerDto(p.Id, p.Name, p.UniversityId, p.Age));
+            return p is null ? NotFound() : Ok(new PlayerDto(p.Id, p.Name, p.UniversityId, p.Age, p.Gender));
         }
 
         // PUT /api/players/{id}
@@ -90,6 +93,7 @@ namespace STMS.Api.Controllers
 
             p.Name = newName;
             p.Age = body.Age;
+            p.Gender = body.Gender;
 
             await _db.SaveChangesAsync();
             return NoContent();
