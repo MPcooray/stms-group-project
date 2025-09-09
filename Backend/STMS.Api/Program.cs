@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ---- config (MySQL 9 wants TLS) ----
 var cs = builder.Configuration.GetConnectionString("Default")
-    ?? "Server=127.0.0.1;Port=3306;Database=stms_dev;User Id=stms;Password=stms;SslMode=Required;TreatTinyAsBoolean=false";
+    ?? "Server=tcp:fffff.database.windows.net,1433;Database=dbstms;User ID=stms_app;Password=nadil@321;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";
 
 var jwtSecret = builder.Configuration["JWT:Secret"] ?? "dev-placeholder-CHANGE-ME";
 
@@ -18,7 +18,11 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<StmsDbContext>(opt =>
-    opt.UseMySql(cs, ServerVersion.AutoDetect(cs)));
+    opt.UseSqlServer(
+        builder.Configuration.GetConnectionString("Default"),
+        sql => sql.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null)
+    )
+);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(o =>

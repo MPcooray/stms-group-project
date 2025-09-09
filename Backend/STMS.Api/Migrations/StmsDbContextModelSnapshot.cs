@@ -18,9 +18,9 @@ namespace STMS.Api.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "9.0.8")
-                .HasAnnotation("Relational:MaxIdentifierLength", 64);
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-            MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("STMS.Api.Models.Admin", b =>
                 {
@@ -28,7 +28,7 @@ namespace STMS.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -38,12 +38,12 @@ namespace STMS.Api.Migrations
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.HasKey("Id");
 
@@ -59,7 +59,7 @@ namespace STMS.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int?>("Age")
                         .HasColumnType("int");
@@ -69,14 +69,10 @@ namespace STMS.Api.Migrations
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<string>("Event")
-                        .HasMaxLength(120)
-                        .HasColumnType("varchar(120)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(160)
-                        .HasColumnType("varchar(160)");
+                        .HasColumnType("nvarchar(160)");
 
                     b.Property<int>("UniversityId")
                         .HasColumnType("int");
@@ -88,13 +84,13 @@ namespace STMS.Api.Migrations
                     b.ToTable("Players", (string)null);
                 });
 
-            modelBuilder.Entity("STMS.Api.Models.Timing", b =>
+            modelBuilder.Entity("STMS.Api.Models.PlayerEvent", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -104,7 +100,36 @@ namespace STMS.Api.Migrations
                     b.Property<string>("Event")
                         .IsRequired()
                         .HasMaxLength(120)
-                        .HasColumnType("varchar(120)");
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<int>("PlayerId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId", "Event")
+                        .IsUnique();
+
+                    b.ToTable("PlayerEvents", (string)null);
+                });
+
+            modelBuilder.Entity("STMS.Api.Models.Timing", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Event")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
 
                     b.Property<int>("PlayerId")
                         .HasColumnType("int");
@@ -125,7 +150,7 @@ namespace STMS.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -138,12 +163,12 @@ namespace STMS.Api.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(120)
-                        .HasColumnType("varchar(120)");
+                        .HasColumnType("nvarchar(120)");
 
                     b.Property<string>("Venue")
                         .IsRequired()
                         .HasMaxLength(120)
-                        .HasColumnType("varchar(120)");
+                        .HasColumnType("nvarchar(120)");
 
                     b.HasKey("Id");
 
@@ -158,7 +183,7 @@ namespace STMS.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -168,7 +193,7 @@ namespace STMS.Api.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(160)
-                        .HasColumnType("varchar(160)");
+                        .HasColumnType("nvarchar(160)");
 
                     b.Property<int>("TournamentId")
                         .HasColumnType("int");
@@ -189,6 +214,17 @@ namespace STMS.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("University");
+                });
+
+            modelBuilder.Entity("STMS.Api.Models.PlayerEvent", b =>
+                {
+                    b.HasOne("STMS.Api.Models.Player", "Player")
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Player");
                 });
 
             modelBuilder.Entity("STMS.Api.Models.Timing", b =>

@@ -1,5 +1,4 @@
 ﻿using System;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -7,59 +6,49 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace STMS.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial_Create : Migration
+    public partial class InitialSqlServer : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterDatabase()
-                .Annotation("MySql:CharSet", "utf8mb4");
-
             migrationBuilder.CreateTable(
                 name: "Admins",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Email = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    PasswordHash = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Email = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Admins", x => x.Id);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "Tournaments",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Name = table.Column<string>(type: "varchar(120)", maxLength: 120, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Venue = table.Column<string>(type: "varchar(120)", maxLength: 120, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(120)", maxLength: 120, nullable: false),
+                    Venue = table.Column<string>(type: "nvarchar(120)", maxLength: 120, nullable: false),
                     Date = table.Column<DateTime>(type: "date", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Tournaments", x => x.Id);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "Universities",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Name = table.Column<string>(type: "varchar(160)", maxLength: 160, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(160)", maxLength: 160, nullable: false),
                     TournamentId = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
@@ -72,20 +61,16 @@ namespace STMS.Api.Migrations
                         principalTable: "Tournaments",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "Players",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Name = table.Column<string>(type: "varchar(160)", maxLength: 160, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(160)", maxLength: 160, nullable: false),
                     UniversityId = table.Column<int>(type: "int", nullable: false),
-                    Event = table.Column<string>(type: "varchar(120)", maxLength: 120, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
                     Age = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
@@ -98,18 +83,37 @@ namespace STMS.Api.Migrations
                         principalTable: "Universities",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PlayerEvents",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PlayerId = table.Column<int>(type: "int", nullable: false),
+                    Event = table.Column<string>(type: "nvarchar(120)", maxLength: 120, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PlayerEvents", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PlayerEvents_Players_PlayerId",
+                        column: x => x.PlayerId,
+                        principalTable: "Players",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
 
             migrationBuilder.CreateTable(
                 name: "Timings",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     PlayerId = table.Column<int>(type: "int", nullable: false),
-                    Event = table.Column<string>(type: "varchar(120)", maxLength: 120, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Event = table.Column<string>(type: "nvarchar(120)", maxLength: 120, nullable: false),
                     TimeMs = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
@@ -122,13 +126,18 @@ namespace STMS.Api.Migrations
                         principalTable: "Players",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Admins_Email",
                 table: "Admins",
                 column: "Email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PlayerEvents_PlayerId_Event",
+                table: "PlayerEvents",
+                columns: new[] { "PlayerId", "Event" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -157,6 +166,9 @@ namespace STMS.Api.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Admins");
+
+            migrationBuilder.DropTable(
+                name: "PlayerEvents");
 
             migrationBuilder.DropTable(
                 name: "Timings");
