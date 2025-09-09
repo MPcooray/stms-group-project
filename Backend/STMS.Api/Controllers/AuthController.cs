@@ -1,53 +1,50 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using BCrypt.Net;
+using STMS.Api.Data;
 
-[ApiController]
-[Route("auth")]
-public class AuthController : ControllerBase
+namespace STMS.Api.Controllers
 {
-    private readonly StmsDbContext _db;
-    private readonly IConfiguration _cfg;
-    public AuthController(StmsDbContext db, IConfiguration cfg)
+    [ApiController]
+    [Route("auth")]
+    public class AuthController : ControllerBase
     {
-        _db = db;
-        _cfg = cfg;
-    }
+        private readonly StmsDbContext _db;
+        private readonly SymmetricSecurityKey _signingKey;
 
-    public record LoginDto(string Email, string Password);
-
-    [HttpPost("login")]
-    public IActionResult Login([FromBody] LoginDto dto)
-    {
-        if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
-            return BadRequest("Email and password are required.");
-
-        var admin = _db.Admins.FirstOrDefault(a => a.Email == dto.Email);
-        if (admin is null) return Unauthorized("Invalid credentials");
-
-        // verify bcrypt hash
-        var ok = BCrypt.Net.BCrypt.Verify(dto.Password, admin.PasswordHash);
-        if (!ok) return Unauthorized("Invalid credentials");
-
-        // issue JWT
-        var secret = _cfg["JWT:Secret"] ?? "dev-placeholder-CHANGE-ME";
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var claims = new[]
+        public AuthController(StmsDbContext db, IConfiguration cfg)
         {
-            new Claim(ClaimTypes.NameIdentifier, admin.Id.ToString()),
-            new Claim(ClaimTypes.Name, admin.Email)
-        };
+            _db = db;
+            var secret = cfg["JWT:Secret"] ?? "dev-placeholder-CHANGE-ME";
+            _signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+        }
 
-        var token = new JwtSecurityToken(
-            claims: claims,
-            expires: DateTime.UtcNow.AddHours(2),
-            signingCredentials: creds);
+        public record LoginDto(string Email, string Password);
 
-        return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
+                return BadRequest("Email and password are required.");
+
+            var admin = await _db.Admins.FirstOrDefaultAsync(a => a.Email == dto.Email);
+            if (admin is null) return Unauthorized(new { error = "Invalid credentials" });
+
+            if (!BCrypt.Net.BCrypt.Verify(dto.Password, admin.PasswordHash))
+                return Unauthorized(new { error = "Invalid credentials" });
+
+            var creds = new SigningCredentials(_signingKey, SecurityAlgorithms.HmacSha256);
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, admin.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, admin.Email)
+            };
+
+            var token = new JwtSecurityToken(claims: claims, expires: DateTime.UtcNow.AddHours(8), signingCredentials: creds);
+            return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
+        }
     }
 }
