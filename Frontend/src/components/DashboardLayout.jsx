@@ -10,7 +10,9 @@ export default function DashboardLayout({ children }) {
   const menuItems = [
     { path: "/dashboard", label: "Dashboard", icon: "📊" },
     { path: "/tournaments", label: "Tournaments", icon: "🏆" },
+    {/*}
     { path: "/players", label: "Players", icon: "🏊‍♂️" },
+     */}
   ]
 
   return (

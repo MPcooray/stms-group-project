@@ -4,8 +4,8 @@ import DashboardLayout from "../components/DashboardLayout.jsx"
 
 const empty = { name: "", university: "", gender: "Male", age: "" }
 
-export default function Players() {
-  const { tournamentId, universityId } = useParams()
+export default function AllPlayers() {
+  const { tournamentId } = useParams()
   const [items, setItems] = useState([])
   const [form, setForm] = useState(empty)
   const [editingId, setEditingId] = useState(null)
@@ -14,20 +14,18 @@ export default function Players() {
   const load = async () => {
     setStatus("")
     try {
-      // Simulate API call with dummy data based on tournamentId and universityId
+      // Simulate API call with dummy data for all players under tournamentId
       const dummyData = {
-        "1-1": [
-          { id: 1, name: "John Doe", university: "University A", gender: "Male", age: 20 },
-          { id: 2, name: "Jane Smith", university: "University A", gender: "Female", age: 22 },
+        "1": [
+          { id: 1, name: "John Doe", university: "University A", gender: "Male", age: 20, tournamentId: "1" },
+          { id: 2, name: "Jane Smith", university: "University A", gender: "Female", age: 22, tournamentId: "1" },
+          { id: 4, name: "Alice Brown", university: "University B", gender: "Female", age: 21, tournamentId: "1" },
         ],
-        "1-2": [],
-        "2-3": [
-          { id: 3, name: "Mike Lee", university: "University C", gender: "Male", age: 19 },
+        "2": [
+          { id: 3, name: "Mike Lee", university: "University C", gender: "Male", age: 19, tournamentId: "2" },
         ],
-        "2-4": [],
       }
-      const key = `${tournamentId}-${universityId}`
-      const data = dummyData[key] || []
+      const data = dummyData[tournamentId] || []
       setItems(data)
     } catch {
       setStatus("Failed to load players")
@@ -36,7 +34,7 @@ export default function Players() {
 
   useEffect(() => {
     load()
-  }, [tournamentId, universityId])
+  }, [tournamentId])
 
   const onSubmit = async (e) => {
     e.preventDefault()
@@ -53,11 +51,16 @@ export default function Players() {
       setStatus("Age must be between 18 and 50")
       return
     }
+    if (!tournamentId) {
+      setStatus("Tournament ID is required")
+      return
+    }
 
     try {
       const payload = {
         ...form,
         age: form.age ? Number.parseInt(form.age) : null,
+        tournamentId,
       }
 
       if (editingId) {
@@ -68,7 +71,7 @@ export default function Players() {
         )
         setStatus("Player updated successfully ✔")
       } else {
-        const newPlayer = { id: Date.now(), ...payload, tournamentId }
+        const newPlayer = { id: Date.now(), ...payload }
         setItems([...items, newPlayer])
         setStatus("Player created successfully ✔")
       }
@@ -101,23 +104,10 @@ export default function Players() {
     }
   }
 
-  // University name mapping
-  const getUniversityName = () => {
-    const uniData = {
-      "1": "University A",
-      "2": "University B",
-      "3": "University C",
-      "4": "University D",
-    }
-    return uniData[universityId] || form.university || "Unknown University"
-  }
-
-  const universityName = getUniversityName()
-
   return (
     <DashboardLayout>
       <div className="container">
-        <h2>Players for {universityName} (Tournament ID: {tournamentId})</h2>
+        <h2>All Players (Tournament ID: {tournamentId})</h2>
         <div className="row">
           <div className="card" style={{ flex: 1, minWidth: 320 }}>
             <h3>{editingId ? "Edit Player" : "Create Player"}</h3>
@@ -127,9 +117,8 @@ export default function Players() {
               <div className="space"></div>
               <label>University</label>
               <input
-                value={form.university || universityName}
+                value={form.university}
                 onChange={(e) => setForm({ ...form, university: e.target.value })}
-                readOnly
               />
               <div className="space"></div>
               <label>Gender</label>

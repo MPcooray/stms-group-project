@@ -6,7 +6,9 @@ const Sidebar = () => {
   const menuItems = [
     { path: "/dashboard", label: "Dashboard", icon: "📊" },
     { path: "/tournaments", label: "Tournaments", icon: "🏆" },
-    { path: "/players", label: "Players", icon: "🏊‍♂️" },
+    {/*
+      { path: "/players/1", label: "Players", icon: "🏊‍♂️" }, // Redirect to /players/1 (Summer Swim Meet) 
+    */}
   ]
 
   return (
