@@ -1,26 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "/Users/kawanr/Documents/SLIIT/Y3S1/CSP/stms-group-project/Backend/STMS.Api/STMS.Api.csproj": {}
+    "/Users/nadildulran/MyWork/STMS/stms-group-project/STMS-Test/stms-group-project/Backend/STMS.Api/STMS.Api.csproj": {}
   },
   "projects": {
-    "/Users/kawanr/Documents/SLIIT/Y3S1/CSP/stms-group-project/Backend/STMS.Api/STMS.Api.csproj": {
+    "/Users/nadildulran/MyWork/STMS/stms-group-project/STMS-Test/stms-group-project/Backend/STMS.Api/STMS.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/kawanr/Documents/SLIIT/Y3S1/CSP/stms-group-project/Backend/STMS.Api/STMS.Api.csproj",
+        "projectUniqueName": "/Users/nadildulran/MyWork/STMS/stms-group-project/STMS-Test/stms-group-project/Backend/STMS.Api/STMS.Api.csproj",
         "projectName": "STMS.Api",
-        "projectPath": "/Users/kawanr/Documents/SLIIT/Y3S1/CSP/stms-group-project/Backend/STMS.Api/STMS.Api.csproj",
-        "packagesPath": "/Users/kawanr/.nuget/packages/",
-        "outputPath": "/Users/kawanr/Documents/SLIIT/Y3S1/CSP/stms-group-project/Backend/STMS.Api/obj/",
+        "projectPath": "/Users/nadildulran/MyWork/STMS/stms-group-project/STMS-Test/stms-group-project/Backend/STMS.Api/STMS.Api.csproj",
+        "packagesPath": "/Users/nadildulran/.nuget/packages/",
+        "outputPath": "/Users/nadildulran/MyWork/STMS/stms-group-project/STMS-Test/stms-group-project/Backend/STMS.Api/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/kawanr/.nuget/NuGet/NuGet.Config"
+          "/Users/nadildulran/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
         ],
         "sources": {
-          "/opt/homebrew/Cellar/dotnet/9.0.8/libexec/library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -39,7 +38,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.100"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net9.0": {
@@ -91,7 +90,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/opt/homebrew/Cellar/dotnet/9.0.8/libexec/sdk/9.0.109/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.304/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
