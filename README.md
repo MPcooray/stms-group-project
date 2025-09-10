@@ -1,3 +1,20 @@
+# stms-group-project
+
+## Local development
+
+Backend (ASP.NET Core):
+- Default URL: http://localhost:5287 (see `Backend/STMS.Api/Properties/launchSettings.json`)
+- Start: from `Backend/STMS.Api` run `dotnet run`
+
+Frontend (Vite + React):
+- Dev server: http://localhost:3000
+- Configure API base: copy `Frontend/.env.example` to `Frontend/.env.local` and edit if needed
+- Start: from `Frontend` run `npm run dev`
+
+CORS/Proxy:
+- Backend enables CORS for localhost:3000/5173
+- Vite also proxies `/api` and `/auth` to the backend when running `npm run dev`
+
 # 🏊 Swimming Tournament Management System (STMS)
 
 ## 📌 Project Overview

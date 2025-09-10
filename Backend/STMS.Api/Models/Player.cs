@@ -7,6 +7,7 @@ namespace STMS.Api.Models
         public int UniversityId { get; set; }
         public University? University { get; set; }
         public int? Age { get; set; }
+    public string? Gender { get; set; } // e.g., "Male", "Female"
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

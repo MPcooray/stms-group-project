@@ -20,6 +20,24 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<StmsDbContext>(opt =>
     opt.UseMySql(cs, ServerVersion.AutoDetect(cs)));
 
+// CORS for local frontend dev (Vite/Next)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("frontend", policy =>
+        policy.WithOrigins(
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+                "http://localhost:3000",
+                "http://127.0.0.1:3000",
+                "http://localhost:3001",
+                "http://127.0.0.1:3001"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials()
+        );
+});
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(o =>
     {
@@ -38,6 +56,8 @@ var app = builder.Build();
 // middleware
 app.UseSwagger(); app.UseSwaggerUI();
 // app.UseHttpsRedirection(); // off for local http
+
+app.UseCors("frontend");
 
 // app.UseAuthentication();
 // app.UseAuthorization();

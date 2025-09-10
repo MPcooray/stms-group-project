@@ -13,6 +13,7 @@ namespace STMS.Api.Data
         public DbSet<Player> Players => Set<Player>();
         public DbSet<Timing> Timings => Set<Timing>();
         public DbSet<PlayerEvent> PlayerEvents => Set<PlayerEvent>();
+    public DbSet<TournamentEvent> TournamentEvents => Set<TournamentEvent>();
 
 
         protected override void OnModelCreating(ModelBuilder model)
@@ -85,6 +86,20 @@ namespace STMS.Api.Data
 
                 // One player should not be registered twice for the same event
                 e.HasIndex(x => new { x.PlayerId, x.Event }).IsUnique();
+            });
+
+            model.Entity<TournamentEvent>(e =>
+            {
+                e.ToTable("TournamentEvents");
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Name).IsRequired().HasMaxLength(120);
+                e.Property(x => x.CreatedAt).HasColumnType("datetime")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                e.HasOne(x => x.Tournament)
+                    .WithMany()
+                    .HasForeignKey(x => x.TournamentId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                e.HasIndex(x => new { x.TournamentId, x.Name }).IsUnique();
             });
         }
     }

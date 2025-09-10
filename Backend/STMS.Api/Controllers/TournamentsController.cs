@@ -15,19 +15,20 @@ namespace STMS.Api.Controllers
         private readonly StmsDbContext _db;
         public TournamentsController(StmsDbContext db) => _db = db;
 
-        public record TournamentDto(int Id, string Name, string Venue, DateTime Date);
+        public record TournamentDto(int Id, string Name, string Venue, DateTime Date, DateTime? EndDate);
         public class UpsertDto
         {
             [Required, MaxLength(120)] public string Name { get; set; } = "";
             [Required, MaxLength(120)] public string Venue { get; set; } = "";
             [Required] public DateTime Date { get; set; }
+            public DateTime? EndDate { get; set; }
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TournamentDto>>> GetAll()
         {
             var list = await _db.Tournaments.OrderByDescending(t => t.Id)
-                .Select(t => new TournamentDto(t.Id, t.Name, t.Venue, t.Date))
+                .Select(t => new TournamentDto(t.Id, t.Name, t.Venue, t.Date, t.EndDate))
                 .ToListAsync();
             return Ok(list);
         }
@@ -36,7 +37,7 @@ namespace STMS.Api.Controllers
         public async Task<ActionResult<TournamentDto>> GetById(int id)
         {
             var t = await _db.Tournaments.FindAsync(id);
-            return t is null ? NotFound() : Ok(new TournamentDto(t.Id, t.Name, t.Venue, t.Date));
+            return t is null ? NotFound() : Ok(new TournamentDto(t.Id, t.Name, t.Venue, t.Date, t.EndDate));
         }
 
         [HttpPost]
@@ -44,11 +45,16 @@ namespace STMS.Api.Controllers
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
 
-            var t = new Tournament { Name = body.Name.Trim(), Venue = body.Venue.Trim(), Date = body.Date.Date };
+            var start = body.Date.Date;
+            var end = body.EndDate?.Date;
+            if (end.HasValue && end.Value < start)
+                return BadRequest(new { error = "End date must be on or after start date" });
+
+            var t = new Tournament { Name = body.Name.Trim(), Venue = body.Venue.Trim(), Date = start, EndDate = end };
             _db.Tournaments.Add(t);
             await _db.SaveChangesAsync();
 
-            var dto = new TournamentDto(t.Id, t.Name, t.Venue, t.Date);
+            var dto = new TournamentDto(t.Id, t.Name, t.Venue, t.Date, t.EndDate);
             return CreatedAtAction(nameof(GetById), new { id = t.Id }, dto);
         }
 
@@ -60,9 +66,15 @@ namespace STMS.Api.Controllers
             var t = await _db.Tournaments.FindAsync(id);
             if (t is null) return NotFound();
 
+            var start = body.Date.Date;
+            var end = body.EndDate?.Date;
+            if (end.HasValue && end.Value < start)
+                return BadRequest(new { error = "End date must be on or after start date" });
+
             t.Name = body.Name.Trim();
             t.Venue = body.Venue.Trim();
-            t.Date = body.Date.Date;
+            t.Date = start;
+            t.EndDate = end;
 
             await _db.SaveChangesAsync();
             return NoContent();

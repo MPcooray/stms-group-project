@@ -16,6 +16,9 @@ namespace STMS.Api.Models
         [Column(TypeName = "date")]
         public DateTime Date { get; set; }
 
+    [Column(TypeName = "date")]
+    public DateTime? EndDate { get; set; }
+
         [Column(TypeName = "datetime")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

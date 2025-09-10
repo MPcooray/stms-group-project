@@ -16,11 +16,18 @@ namespace STMS.Api.Controllers
         public PlayerEventsController(StmsDbContext db) => _db = db;
 
         public record PlayerEventDto(int Id, int PlayerId, string Event);
+        public record PlayerForEventDto(int PlayerId, string PlayerName, int UniversityId, string UniversityName);
 
         public class PlayerEventUpsertDto
         {
             [Required, MaxLength(120)]
             public string Event { get; set; } = "";
+        }
+
+        public class RegisterPlayerBody
+        {
+            [Required]
+            public int PlayerId { get; set; }
         }
 
         // LIST events for a player
@@ -99,6 +106,68 @@ namespace STMS.Api.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var pe = await _db.PlayerEvents.FirstOrDefaultAsync(x => x.Id == id);
+            if (pe is null) return NotFound();
+
+            _db.PlayerEvents.Remove(pe);
+            await _db.SaveChangesAsync();
+            return NoContent();
+        }
+
+        // LIST registrations for a tournament event (by tournament + eventId)
+        // GET /api/tournaments/{tournamentId}/events/{eventId}/registrations
+        [HttpGet("tournaments/{tournamentId:int}/events/{eventId:int}/registrations")]
+        public async Task<ActionResult<IEnumerable<PlayerForEventDto>>> ListRegistrationsForTournamentEvent(int tournamentId, int eventId)
+        {
+            var ev = await _db.TournamentEvents.AsNoTracking().FirstOrDefaultAsync(e => e.Id == eventId);
+            if (ev is null || ev.TournamentId != tournamentId)
+                return NotFound(new { error = "Event not found in this tournament" });
+
+            var list = await (from pe in _db.PlayerEvents.AsNoTracking()
+                              join p in _db.Players.AsNoTracking() on pe.PlayerId equals p.Id
+                              join u in _db.Universities.AsNoTracking() on p.UniversityId equals u.Id
+                              where u.TournamentId == tournamentId && pe.Event == ev.Name
+                              orderby p.Name
+                              select new PlayerForEventDto(p.Id, p.Name, u.Id, u.Name))
+                              .ToListAsync();
+            return Ok(list);
+        }
+
+        // REGISTER a player to a tournament event
+        // POST /api/tournaments/{tournamentId}/events/{eventId}/registrations { playerId }
+        [HttpPost("tournaments/{tournamentId:int}/events/{eventId:int}/registrations")]
+        public async Task<IActionResult> RegisterPlayerToTournamentEvent(int tournamentId, int eventId, [FromBody] RegisterPlayerBody body)
+        {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+
+            var ev = await _db.TournamentEvents.FirstOrDefaultAsync(e => e.Id == eventId);
+            if (ev is null || ev.TournamentId != tournamentId)
+                return NotFound(new { error = "Event not found in this tournament" });
+
+            var player = await _db.Players.Include(p => p.University).FirstOrDefaultAsync(p => p.Id == body.PlayerId);
+            if (player is null) return NotFound(new { error = "Player not found" });
+            if (player.University is null || player.University.TournamentId != tournamentId)
+                return BadRequest(new { error = "Player does not belong to this tournament" });
+
+            var exists = await _db.PlayerEvents.AsNoTracking()
+                .AnyAsync(pe => pe.PlayerId == body.PlayerId && pe.Event == ev.Name);
+            if (exists) return Conflict(new { error = "Player already registered for this event" });
+
+            var pe = new PlayerEvent { PlayerId = body.PlayerId, Event = ev.Name };
+            _db.PlayerEvents.Add(pe);
+            await _db.SaveChangesAsync();
+            return NoContent();
+        }
+
+        // UNREGISTER a player from a tournament event
+        // DELETE /api/tournaments/{tournamentId}/events/{eventId}/registrations/{playerId}
+        [HttpDelete("tournaments/{tournamentId:int}/events/{eventId:int}/registrations/{playerId:int}")]
+        public async Task<IActionResult> UnregisterPlayerFromTournamentEvent(int tournamentId, int eventId, int playerId)
+        {
+            var ev = await _db.TournamentEvents.AsNoTracking().FirstOrDefaultAsync(e => e.Id == eventId);
+            if (ev is null || ev.TournamentId != tournamentId)
+                return NotFound(new { error = "Event not found in this tournament" });
+
+            var pe = await _db.PlayerEvents.FirstOrDefaultAsync(x => x.PlayerId == playerId && x.Event == ev.Name);
             if (pe is null) return NotFound();
 
             _db.PlayerEvents.Remove(pe);

@@ -69,9 +69,8 @@ namespace STMS.Api.Migrations
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<string>("Event")
-                        .HasMaxLength(120)
-                        .HasColumnType("varchar(120)");
+                    b.Property<string>("Gender")
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -86,6 +85,35 @@ namespace STMS.Api.Migrations
                     b.HasIndex("UniversityId", "Name");
 
                     b.ToTable("Players", (string)null);
+                });
+
+            modelBuilder.Entity("STMS.Api.Models.PlayerEvent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Event")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("varchar(120)");
+
+                    b.Property<int>("PlayerId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId", "Event")
+                        .IsUnique();
+
+                    b.ToTable("PlayerEvents", (string)null);
                 });
 
             modelBuilder.Entity("STMS.Api.Models.Timing", b =>
@@ -135,6 +163,9 @@ namespace STMS.Api.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("date");
 
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("date");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(120)
@@ -150,6 +181,35 @@ namespace STMS.Api.Migrations
                     b.HasIndex("Date", "Venue");
 
                     b.ToTable("Tournaments", (string)null);
+                });
+
+            modelBuilder.Entity("STMS.Api.Models.TournamentEvent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("varchar(120)");
+
+                    b.Property<int>("TournamentId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TournamentId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("TournamentEvents", (string)null);
                 });
 
             modelBuilder.Entity("STMS.Api.Models.University", b =>
@@ -191,6 +251,17 @@ namespace STMS.Api.Migrations
                     b.Navigation("University");
                 });
 
+            modelBuilder.Entity("STMS.Api.Models.PlayerEvent", b =>
+                {
+                    b.HasOne("STMS.Api.Models.Player", "Player")
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Player");
+                });
+
             modelBuilder.Entity("STMS.Api.Models.Timing", b =>
                 {
                     b.HasOne("STMS.Api.Models.Player", "Player")
@@ -200,6 +271,17 @@ namespace STMS.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Player");
+                });
+
+            modelBuilder.Entity("STMS.Api.Models.TournamentEvent", b =>
+                {
+                    b.HasOne("STMS.Api.Models.Tournament", "Tournament")
+                        .WithMany()
+                        .HasForeignKey("TournamentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tournament");
                 });
 
             modelBuilder.Entity("STMS.Api.Models.University", b =>

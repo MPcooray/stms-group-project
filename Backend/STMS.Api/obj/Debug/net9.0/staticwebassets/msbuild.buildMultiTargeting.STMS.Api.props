@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="../build/STMS.Api.props" />
+</Project>
