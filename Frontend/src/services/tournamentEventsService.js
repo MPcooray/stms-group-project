@@ -25,3 +25,10 @@ export async function deleteEvent(id) {
   const res = await api.delete(`/api/tournament-events/${id}`)
   return res.data
 }
+
+// List distinct registered (player) events within a tournament
+export async function listRegisteredEventsByTournament(tournamentId) {
+  if (!tournamentId) throw new Error("tournamentId is required")
+  const res = await api.get(`/api/tournaments/${tournamentId}/registered-events`)
+  return res.data
+}

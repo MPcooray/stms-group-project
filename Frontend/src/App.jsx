@@ -1,15 +1,13 @@
-import { Routes, Route, Navigate } from "react-router-dom"
+import { Navigate, Route, Routes } from "react-router-dom"
 import { AuthProvider } from "./context/AuthContext.jsx"
-import ProtectedRoute from "./components/ProtectedRoute.jsx"
-import Login from "./pages/Login.jsx"
+import AllPlayers from "./pages/AllPlayers.jsx"
 import Dashboard from "./pages/Dashboard.jsx"
-import Players from "./pages/Players.jsx"
-import PlayerEvents from "./pages/PlayerEvents.jsx"
-import Tournaments from "./pages/Tournaments.jsx"
-import Universities from "./pages/Universities.jsx"
 import Events from "./pages/Events.jsx"
 import EventTimings from "./pages/EventTimings.jsx"
-import AllPlayers from "./pages/AllPlayers.jsx"
+import Login from "./pages/Login.jsx"
+import Players from "./pages/Players.jsx"
+import Tournaments from "./pages/Tournaments.jsx"
+import Universities from "./pages/Universities.jsx"
 
 export default function App() {
   return (
@@ -23,7 +21,6 @@ export default function App() {
         <Route path="/tournaments" element={<Tournaments />} />
   <Route path="/events/:tournamentId" element={<Events />} />
   <Route path="/events/:tournamentId/:eventId/timings" element={<EventTimings />} />
-  <Route path="/players/:playerId/events" element={<PlayerEvents />} />
        
         {/*<Route
           path="/dashboard"

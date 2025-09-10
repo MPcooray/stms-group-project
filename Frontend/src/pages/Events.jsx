@@ -1,7 +1,7 @@
+import { useEffect, useState } from "react"
+import { Link, useParams } from "react-router-dom"
 import DashboardLayout from "../components/DashboardLayout.jsx"
-import { useState, useEffect } from "react"
-import { useParams, Link } from "react-router-dom"
-import { listEventsByTournament, createEvent, updateEvent, deleteEvent } from "../services/tournamentEventsService.js"
+import { createEvent, deleteEvent, listEventsByTournament, updateEvent } from "../services/tournamentEventsService.js"
 
 const empty = { name: "" }
 
@@ -15,10 +15,13 @@ export default function Events() {
   const load = async () => {
     setStatus("")
     try {
-      const data = await listEventsByTournament(tournamentId)
-      setItems(Array.isArray(data) ? data : [])
-    } catch {
-      setStatus("Failed to load events")
+  const defs = await listEventsByTournament(tournamentId)
+  setItems(Array.isArray(defs) ? defs : [])
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.message || "Failed to load events"
+      setStatus(msg)
+      // eslint-disable-next-line no-console
+      console.error("Events load failed:", err)
     }
   }
 
@@ -41,7 +44,10 @@ export default function Events() {
       setEditingId(null)
       await load()
     } catch (error) {
-      setStatus(error.message || "Save failed")
+      const msg = error?.response?.data?.error || error?.message || "Save failed"
+      setStatus(msg)
+      // eslint-disable-next-line no-console
+      console.error("Event save failed:", error)
     }
   }
 
@@ -56,8 +62,11 @@ export default function Events() {
       await deleteEvent(id)
       setStatus("Event deleted successfully ✔")
       await load()
-    } catch {
-      setStatus("Delete failed")
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.message || "Delete failed"
+      setStatus(msg)
+      // eslint-disable-next-line no-console
+      console.error("Event delete failed:", err)
     }
   }
 
@@ -66,6 +75,7 @@ export default function Events() {
       <div className="container">
         <div className="card">
           <h2>Events for Tournament ID: {tournamentId}</h2>
+          {status && <div className={status.includes("✔") ? "success" : "error"}>{status}</div>}
           <div className="row">
             <div className="card" style={{ flex: 1, minWidth: 320 }}>
               <h3>{editingId ? "Edit Event" : "Add Event"}</h3>

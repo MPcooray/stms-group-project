@@ -12,6 +12,18 @@ export async function listPlayersByUniversity(universityId) {
   }
 }
 
+// Listing all players in a tournament: GET /api/tournaments/{tournamentId}/players
+export async function listPlayersByTournament(tournamentId) {
+  if (!tournamentId) throw new Error("tournamentId is required")
+  try {
+    const response = await api.get(`/api/tournaments/${tournamentId}/players`)
+    return response.data
+  } catch (error) {
+    console.error("Failed to fetch players by tournament:", error)
+    throw error
+  }
+}
+
 // Create under a university: POST /api/universities/{universityId}/players
 export async function createPlayer(universityId, payload) {
   if (!universityId) throw new Error("universityId is required")

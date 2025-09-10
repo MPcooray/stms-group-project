@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
-import { useParams, Link } from "react-router-dom"
+import { useParams } from "react-router-dom"
 import DashboardLayout from "../components/DashboardLayout.jsx"
-import { listPlayersByUniversity, createPlayer, updatePlayer, deletePlayer } from "../services/playerService.js"
+import { createPlayer, deletePlayer, listPlayersByUniversity, updatePlayer } from "../services/playerService.js"
 import { getUniversityById } from "../services/universityService.js"
 
 const empty = { name: "", gender: "Male", age: "" }
@@ -155,9 +155,6 @@ export default function Players() {
                     <td>{it.gender ?? "-"}</td>
                     <td>{it.age ?? "-"}</td>
                     <td>
-                      <Link className="btn ghost" to={`/players/${it.id}/events`}>
-                        Events
-                      </Link>{" "}
                       <button className="btn ghost" onClick={() => onEdit(it)}>
                         Edit
                       </button>{" "}

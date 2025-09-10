@@ -15,7 +15,8 @@ namespace STMS.Api.Controllers
         private readonly StmsDbContext _db;
         public PlayersController(StmsDbContext db) => _db = db;
 
-    public record PlayerDto(int Id, string Name, int UniversityId, int? Age, string? Gender);
+        public record PlayerDto(int Id, string Name, int UniversityId, int? Age, string? Gender);
+        public record PlayerInTournamentDto(int Id, string Name, int UniversityId, string UniversityName, int? Age, string? Gender);
 
         public class PlayerUpsertDto
         {
@@ -27,6 +28,29 @@ namespace STMS.Api.Controllers
 
             [MaxLength(20)]
             public string? Gender { get; set; }
+        }
+
+        // GET /api/tournaments/{tournamentId}/players
+        [HttpGet("tournaments/{tournamentId:int}/players")]
+        public async Task<ActionResult<IEnumerable<PlayerInTournamentDto>>> ListByTournament(int tournamentId)
+        {
+            var tExists = await _db.Tournaments.AsNoTracking().AnyAsync(t => t.Id == tournamentId);
+            if (!tExists) return NotFound(new { error = "Tournament not found" });
+
+            var list = await _db.Players.AsNoTracking()
+                .Where(p => _db.Universities.Any(u => u.Id == p.UniversityId && u.TournamentId == tournamentId))
+                .OrderBy(p => p.Name)
+                .Select(p => new PlayerInTournamentDto(
+                    p.Id,
+                    p.Name,
+                    p.UniversityId,
+                    _db.Universities.Where(u => u.Id == p.UniversityId).Select(u => u.Name).FirstOrDefault()!,
+                    p.Age,
+                    p.Gender
+                ))
+                .ToListAsync();
+
+            return Ok(list);
         }
 
         // GET /api/universities/{universityId}/players

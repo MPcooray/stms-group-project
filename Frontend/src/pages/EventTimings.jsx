@@ -1,6 +1,8 @@
-import DashboardLayout from "../components/DashboardLayout.jsx"
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
+import DashboardLayout from "../components/DashboardLayout.jsx"
+import { listPlayersByTournament } from "../services/playerService.js"
+import { listRegistrations, registerPlayer, unregisterPlayer } from "../services/tournamentEventRegistrationsService.js"
 
 export default function EventTimings() {
   const { tournamentId, eventId } = useParams()
@@ -13,63 +15,47 @@ export default function EventTimings() {
     const load = async () => {
       setStatus("")
       try {
-        // Dummy available players based on tournamentId
-        const dummyAvailable = {
-          1: [
-            { id: 1, name: "John Doe", university: "University A" },
-            { id: 2, name: "Jane Smith", university: "University A" },
-            { id: 4, name: "Alice Brown", university: "University B" },
-          ],
-          2: [
-            { id: 3, name: "Mike Lee", university: "University C" },
-            { id: 5, name: "Bob Johnson", university: "University D" },
-          ],
-        }
+        const [allPlayers, regs] = await Promise.all([
+          listPlayersByTournament(tournamentId),
+          listRegistrations(tournamentId, eventId),
+        ])
 
-        // Dummy registered players with timings based on tournamentId-eventId
-        const dummyRegistered = {
-          "1-1": [
-            { id: 1, name: "John Doe", university: "University A", timing: 50.5 },
-          ],
-          "1-2": [
-            { id: 2, name: "Jane Smith", university: "University A", timing: null },
-          ],
-          "2-3": [
-            { id: 3, name: "Mike Lee", university: "University C", timing: 25.3 },
-          ],
-          "2-4": [],
-        }
+        const regIds = new Set((regs || []).map((r) => r.playerId))
+        const registered = (regs || []).map((r) => ({
+          id: r.playerId,
+          name: r.playerName,
+          university: r.universityName,
+          timing: null,
+        }))
+        const available = (allPlayers || [])
+          .filter((p) => !regIds.has(p.id))
+          .map((p) => ({ id: p.id, name: p.name, university: p.universityName }))
 
-        const avail = dummyAvailable[tournamentId] || []
-        const regKey = `${tournamentId}-${eventId}`
-        const reg = dummyRegistered[regKey] || []
-
-        // Filter available to exclude registered
-        const filteredAvail = avail.filter(
-          (p) => !reg.some((r) => r.id === p.id)
-        )
-
-        setAvailablePlayers(filteredAvail)
-        setRegisteredPlayers(reg)
-      } catch {
+        setRegisteredPlayers(registered)
+        setAvailablePlayers(available)
+      } catch (err) {
+        console.error(err)
         setStatus("Failed to load data")
       }
     }
     load()
   }, [tournamentId, eventId])
 
-  const onAddPlayer = (e) => {
+  const onAddPlayer = async (e) => {
     e.preventDefault()
-    if (!selectedPlayerId) {
-      setStatus("Select a player to register")
-      return
-    }
-    const playerToAdd = availablePlayers.find((p) => p.id === parseInt(selectedPlayerId))
-    if (playerToAdd) {
-      setRegisteredPlayers([...registeredPlayers, { ...playerToAdd, timing: null }])
-      setAvailablePlayers(availablePlayers.filter((p) => p.id !== playerToAdd.id))
+    if (!selectedPlayerId) return setStatus("Select a player to register")
+    try {
+      await registerPlayer(tournamentId, eventId, parseInt(selectedPlayerId))
+      const playerToAdd = availablePlayers.find((p) => p.id === parseInt(selectedPlayerId))
+      if (playerToAdd) {
+        setRegisteredPlayers([...registeredPlayers, { ...playerToAdd, timing: null }])
+        setAvailablePlayers(availablePlayers.filter((p) => p.id !== playerToAdd.id))
+      }
       setSelectedPlayerId("")
       setStatus("Player registered successfully ✔")
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.message || "Registration failed"
+      setStatus(msg)
     }
   }
 
@@ -127,6 +113,7 @@ export default function EventTimings() {
                     <th>Name</th>
                     <th>University</th>
                     <th>Timing (seconds)</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -146,6 +133,21 @@ export default function EventTimings() {
                             onChange={(e) => updateTiming(p.id, e.target.value)}
                             placeholder="Enter time"
                           />
+                        </td>
+                        <td>
+                          <button className="btn danger" onClick={async () => {
+                            try {
+                              await unregisterPlayer(tournamentId, eventId, p.id)
+                              setRegisteredPlayers(registeredPlayers.filter((x) => x.id !== p.id))
+                              setAvailablePlayers([...availablePlayers, { id: p.id, name: p.name, university: p.university }])
+                              setStatus("Player unregistered ✔")
+                            } catch (err) {
+                              const msg = err?.response?.data?.error || err?.message || "Unregister failed"
+                              setStatus(msg)
+                            }
+                          }}>
+                            Remove
+                          </button>
                         </td>
                       </tr>
                     )

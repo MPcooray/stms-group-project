@@ -1,6 +1,6 @@
-import DashboardLayout from "../components/DashboardLayout.jsx"
-import { Link } from "react-router-dom"
 import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
+import DashboardLayout from "../components/DashboardLayout.jsx"
 import { listTournaments } from "../services/tournamentService.js"
 
 export default function Dashboard() {
@@ -92,6 +92,12 @@ export default function Dashboard() {
                       <td>
                         <Link to={`/universities/${t.id}`} className="btn ghost">
                           Universities
+                        </Link>{" "}
+                        <Link to={`/events/${t.id}`} className="btn ghost">
+                          Events
+                        </Link>{" "}
+                        <Link to={`/players/${t.id}`} className="btn ghost">
+                          All Players
                         </Link>
                       </td>
                     </tr>

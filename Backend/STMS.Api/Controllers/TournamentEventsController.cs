@@ -16,6 +16,7 @@ namespace STMS.Api.Controllers
         public TournamentEventsController(StmsDbContext db) => _db = db;
 
         public record EventDto(int Id, int TournamentId, string Name);
+        public record RegisteredEventDto(string Name, int Registrations);
         public class UpsertDto { [Required, MaxLength(120)] public string Name { get; set; } = string.Empty; }
 
         // GET /api/tournaments/{tournamentId}/events
@@ -30,6 +31,26 @@ namespace STMS.Api.Controllers
                 .OrderBy(e => e.Name)
                 .Select(e => new EventDto(e.Id, e.TournamentId, e.Name))
                 .ToListAsync();
+            return Ok(list);
+        }
+
+        // GET /api/tournaments/{tournamentId}/registered-events
+        // Distinct set of event names players registered for in this tournament (+ counts)
+        [HttpGet("tournaments/{tournamentId:int}/registered-events")]
+        public async Task<ActionResult<IEnumerable<RegisteredEventDto>>> ListRegisteredByTournament(int tournamentId)
+        {
+            var exists = await _db.Tournaments.AsNoTracking().AnyAsync(t => t.Id == tournamentId);
+            if (!exists) return NotFound(new { error = "Tournament not found" });
+
+            var list = await (from pe in _db.PlayerEvents.AsNoTracking()
+                              join p in _db.Players.AsNoTracking() on pe.PlayerId equals p.Id
+                              join u in _db.Universities.AsNoTracking() on p.UniversityId equals u.Id
+                              where u.TournamentId == tournamentId
+                              group pe by pe.Event into g
+                              orderby g.Key
+                              select new RegisteredEventDto(g.Key, g.Count()))
+                             .ToListAsync();
+
             return Ok(list);
         }
 
