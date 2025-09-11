@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/nadildulran/MyWork/STMS/stms-group-project/STMS-Test/stms-group-project/Backend/STMS.Api/STMS.Api.csproj": {}
+    "/Users/nadildulran/MyWork/STMS/stms-group-project/Backend/STMS.Api/STMS.Api.csproj": {}
   },
   "projects": {
-    "/Users/nadildulran/MyWork/STMS/stms-group-project/STMS-Test/stms-group-project/Backend/STMS.Api/STMS.Api.csproj": {
+    "/Users/nadildulran/MyWork/STMS/stms-group-project/Backend/STMS.Api/STMS.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/nadildulran/MyWork/STMS/stms-group-project/STMS-Test/stms-group-project/Backend/STMS.Api/STMS.Api.csproj",
+        "projectUniqueName": "/Users/nadildulran/MyWork/STMS/stms-group-project/Backend/STMS.Api/STMS.Api.csproj",
         "projectName": "STMS.Api",
-        "projectPath": "/Users/nadildulran/MyWork/STMS/stms-group-project/STMS-Test/stms-group-project/Backend/STMS.Api/STMS.Api.csproj",
+        "projectPath": "/Users/nadildulran/MyWork/STMS/stms-group-project/Backend/STMS.Api/STMS.Api.csproj",
         "packagesPath": "/Users/nadildulran/.nuget/packages/",
-        "outputPath": "/Users/nadildulran/MyWork/STMS/stms-group-project/STMS-Test/stms-group-project/Backend/STMS.Api/obj/",
+        "outputPath": "/Users/nadildulran/MyWork/STMS/stms-group-project/Backend/STMS.Api/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/nadildulran/.nuget/NuGet/NuGet.Config"
@@ -65,6 +65,14 @@
             "Pomelo.EntityFrameworkCore.MySql": {
               "target": "Package",
               "version": "[9.0.0, )"
+            },
+            "Selenium.WebDriver": {
+              "target": "Package",
+              "version": "[4.35.0, )"
+            },
+            "Selenium.WebDriver.ChromeDriver": {
+              "target": "Package",
+              "version": "[140.0.7339.8200, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",

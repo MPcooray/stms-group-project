@@ -2,13 +2,16 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using STMS.Api.Data;
+using STMS.Api.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ---- config (MySQL 9 wants TLS) ----
+// If the server uses caching_sha2_password and TLS is not available locally,
+// allow the connector to retrieve the server RSA public key (dev only).
 var cs = builder.Configuration.GetConnectionString("Default")
-    ?? "Server=127.0.0.1;Port=3306;Database=stms_dev;User Id=stms;Password=stms;SslMode=Required;TreatTinyAsBoolean=false";
+    ?? "Server=127.0.0.1;Port=3306;Database=stms_dev;User Id=stms;Password=stms;SslMode=Required;AllowPublicKeyRetrieval=True;TreatTinyAsBoolean=false";
 
 var jwtSecret = builder.Configuration["JWT:Secret"] ?? "dev-placeholder-CHANGE-ME";
 
@@ -74,4 +77,35 @@ app.MapGet("/db-test", async (StmsDbContext db) =>
 app.MapGet("/_dev/hash/{pwd}", (string pwd) => Results.Ok(new { pwd, hash = BCrypt.Net.BCrypt.HashPassword(pwd) }));
 
 app.MapControllers();
+// Development-only: seed a local admin if none exists so login works during dev
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<StmsDbContext>();
+    try
+    {
+        var pwd = "Admin#123"; // dev default - change if you like
+        // Ensure the frontend default admin exists
+        if (!db.Admins.Any(a => a.Email == "admin@stms.com"))
+        {
+            var admin = new Admin { Email = "admin@stms.com", PasswordHash = BCrypt.Net.BCrypt.HashPassword(pwd) };
+            db.Admins.Add(admin);
+            db.SaveChanges();
+            Console.WriteLine($"[DEV SEED] Created admin {admin.Email} with password {pwd}");
+        }
+        // Also keep the previous seed for convenience
+        if (!db.Admins.Any(a => a.Email == "admin@local"))
+        {
+            var admin2 = new Admin { Email = "admin@local", PasswordHash = BCrypt.Net.BCrypt.HashPassword(pwd) };
+            db.Admins.Add(admin2);
+            db.SaveChanges();
+            Console.WriteLine($"[DEV SEED] Created admin {admin2.Email} with password {pwd}");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("[DEV SEED] Failed to seed admin: " + ex);
+    }
+}
+
 app.Run();

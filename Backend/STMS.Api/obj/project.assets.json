@@ -856,6 +856,42 @@
           }
         }
       },
+      "Selenium.WebDriver/4.35.0": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/WebDriver.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/WebDriver.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/netstandard2.0/Selenium.WebDriver.targets": {}
+        },
+        "runtimeTargets": {
+          "runtimes/linux/native/selenium-manager": {
+            "assetType": "native",
+            "rid": "linux"
+          },
+          "runtimes/osx/native/selenium-manager": {
+            "assetType": "native",
+            "rid": "osx"
+          },
+          "runtimes/win/native/selenium-manager.exe": {
+            "assetType": "native",
+            "rid": "win"
+          }
+        }
+      },
+      "Selenium.WebDriver.ChromeDriver/140.0.7339.8200": {
+        "type": "package",
+        "build": {
+          "build/Selenium.WebDriver.ChromeDriver.targets": {}
+        }
+      },
       "Swashbuckle.AspNetCore/9.0.4": {
         "type": "package",
         "dependencies": {
@@ -3123,6 +3159,52 @@
         "pomelo.entityframeworkcore.mysql.nuspec"
       ]
     },
+    "Selenium.WebDriver/4.35.0": {
+      "sha512": "C9OrObS2KLyUQDJNRY883JAc4n5q58pBYmY954hf+lGMQQcsz4Ias2mk91lHkLXFX+2qMttya4df9lGP1SLiGQ==",
+      "type": "package",
+      "path": "selenium.webdriver/4.35.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "build/netstandard2.0/Selenium.WebDriver.targets",
+        "buildTransitive/netstandard2.0/Selenium.WebDriver.targets",
+        "icon.png",
+        "lib/net8.0/WebDriver.dll",
+        "lib/net8.0/WebDriver.xml",
+        "lib/netstandard2.0/WebDriver.dll",
+        "lib/netstandard2.0/WebDriver.xml",
+        "runtimes/linux/native/selenium-manager",
+        "runtimes/osx/native/selenium-manager",
+        "runtimes/win/native/selenium-manager.exe",
+        "selenium.webdriver.4.35.0.nupkg.sha512",
+        "selenium.webdriver.nuspec"
+      ]
+    },
+    "Selenium.WebDriver.ChromeDriver/140.0.7339.8200": {
+      "sha512": "SFbpaiOrVd0GsMR0PvFnQfv5ASdquW8YNOyysuzHVSPQx3SxmWgKYK7NbZXBtU0MNCu3QjkVFhgFRNtqVvNmHQ==",
+      "type": "package",
+      "path": "selenium.webdriver.chromedriver/140.0.7339.8200",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "README.md",
+        "build/DefinePropertiesChromeDriver.targets",
+        "build/Selenium.WebDriver.ChromeDriver.targets",
+        "driver/linux64/LICENSE.chromedriver",
+        "driver/linux64/chromedriver",
+        "driver/mac64/LICENSE.chromedriver",
+        "driver/mac64/chromedriver",
+        "driver/mac64arm/LICENSE.chromedriver",
+        "driver/mac64arm/chromedriver",
+        "driver/win32/LICENSE.chromedriver",
+        "driver/win32/chromedriver.exe",
+        "nupkg-icon.png",
+        "selenium.webdriver.chromedriver.140.0.7339.8200.nupkg.sha512",
+        "selenium.webdriver.chromedriver.nuspec"
+      ]
+    },
     "Swashbuckle.AspNetCore/9.0.4": {
       "sha512": "4hghaogMoS87Ivjj8s7aGuGsxrsjXZpjNvahLsN+zSLrZQcV8zQyiBweBd9AXC1sGkeNYb9/hbeS1EXrZ/hKjQ==",
       "type": "package",
@@ -3610,6 +3692,8 @@
       "Microsoft.AspNetCore.OpenApi >= 9.0.8",
       "Microsoft.EntityFrameworkCore.Design >= 9.0.8",
       "Pomelo.EntityFrameworkCore.MySql >= 9.0.0",
+      "Selenium.WebDriver >= 4.35.0",
+      "Selenium.WebDriver.ChromeDriver >= 140.0.7339.8200",
       "Swashbuckle.AspNetCore >= 9.0.4"
     ]
   },
@@ -3619,11 +3703,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/nadildulran/MyWork/STMS/stms-group-project/STMS-Test/stms-group-project/Backend/STMS.Api/STMS.Api.csproj",
+      "projectUniqueName": "/Users/nadildulran/MyWork/STMS/stms-group-project/Backend/STMS.Api/STMS.Api.csproj",
       "projectName": "STMS.Api",
-      "projectPath": "/Users/nadildulran/MyWork/STMS/stms-group-project/STMS-Test/stms-group-project/Backend/STMS.Api/STMS.Api.csproj",
+      "projectPath": "/Users/nadildulran/MyWork/STMS/stms-group-project/Backend/STMS.Api/STMS.Api.csproj",
       "packagesPath": "/Users/nadildulran/.nuget/packages/",
-      "outputPath": "/Users/nadildulran/MyWork/STMS/stms-group-project/STMS-Test/stms-group-project/Backend/STMS.Api/obj/",
+      "outputPath": "/Users/nadildulran/MyWork/STMS/stms-group-project/Backend/STMS.Api/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/nadildulran/.nuget/NuGet/NuGet.Config"
@@ -3677,6 +3761,14 @@
           "Pomelo.EntityFrameworkCore.MySql": {
             "target": "Package",
             "version": "[9.0.0, )"
+          },
+          "Selenium.WebDriver": {
+            "target": "Package",
+            "version": "[4.35.0, )"
+          },
+          "Selenium.WebDriver.ChromeDriver": {
+            "target": "Package",
+            "version": "[140.0.7339.8200, )"
           },
           "Swashbuckle.AspNetCore": {
             "target": "Package",

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "6ZPAi0pM/+8=",
+  "dgSpecHash": "y485+Jds+Ro=",
   "success": true,
-  "projectFilePath": "/Users/nadildulran/MyWork/STMS/stms-group-project/STMS-Test/stms-group-project/Backend/STMS.Api/STMS.Api.csproj",
+  "projectFilePath": "/Users/nadildulran/MyWork/STMS/stms-group-project/Backend/STMS.Api/STMS.Api.csproj",
   "expectedPackageFiles": [
     "/Users/nadildulran/.nuget/packages/bcrypt.net-next/4.0.3/bcrypt.net-next.4.0.3.nupkg.sha512",
     "/Users/nadildulran/.nuget/packages/humanizer.core/2.14.1/humanizer.core.2.14.1.nupkg.sha512",
@@ -43,6 +43,8 @@
     "/Users/nadildulran/.nuget/packages/mono.texttemplating/3.0.0/mono.texttemplating.3.0.0.nupkg.sha512",
     "/Users/nadildulran/.nuget/packages/mysqlconnector/2.4.0/mysqlconnector.2.4.0.nupkg.sha512",
     "/Users/nadildulran/.nuget/packages/pomelo.entityframeworkcore.mysql/9.0.0/pomelo.entityframeworkcore.mysql.9.0.0.nupkg.sha512",
+    "/Users/nadildulran/.nuget/packages/selenium.webdriver/4.35.0/selenium.webdriver.4.35.0.nupkg.sha512",
+    "/Users/nadildulran/.nuget/packages/selenium.webdriver.chromedriver/140.0.7339.8200/selenium.webdriver.chromedriver.140.0.7339.8200.nupkg.sha512",
     "/Users/nadildulran/.nuget/packages/swashbuckle.aspnetcore/9.0.4/swashbuckle.aspnetcore.9.0.4.nupkg.sha512",
     "/Users/nadildulran/.nuget/packages/swashbuckle.aspnetcore.swagger/9.0.4/swashbuckle.aspnetcore.swagger.9.0.4.nupkg.sha512",
     "/Users/nadildulran/.nuget/packages/swashbuckle.aspnetcore.swaggergen/9.0.4/swashbuckle.aspnetcore.swaggergen.9.0.4.nupkg.sha512",
