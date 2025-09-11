@@ -45,7 +45,7 @@ namespace STMS.Api.Tests
             // 5. Update tournament
                 // 5. Update tournament (debug page source and retry loop for robustness)
                 Console.WriteLine(driver.PageSource); // Debug: print HTML before searching for Edit button
-                IWebElement editButton = null;
+                IWebElement? editButton = null;
                 for (int i = 0; i < 10; i++)
                 {
                     try
@@ -68,7 +68,7 @@ namespace STMS.Api.Tests
             Assert.Contains("Selenium Tournament Updated", driver.PageSource);
 
             // 7. Delete tournament (retry loop for robustness)
-            IWebElement deleteButton = null;
+            IWebElement? deleteButton = null;
             for (int i = 0; i < 10; i++)
             {
                 try

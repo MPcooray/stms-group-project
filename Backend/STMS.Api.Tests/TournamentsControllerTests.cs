@@ -97,6 +97,7 @@ namespace STMS.Api.Tests
             var result = await controller.Update(tournament.Id, body);
             var updated = db.Tournaments.Find(tournament.Id);
 
+            Assert.NotNull(updated);
             Assert.Equal("Updated Name", updated.Name);
             Assert.Equal("Updated Venue", updated.Venue);
             Assert.Equal(DateTime.Today.AddDays(2), updated.EndDate);
