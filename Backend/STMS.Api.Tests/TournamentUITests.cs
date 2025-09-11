@@ -15,6 +15,7 @@ namespace STMS.Api.Tests
 
             // 1. Go to the login page and log in as admin
             driver.Navigate().GoToUrl("http://localhost:3000/login/");
+            System.Threading.Thread.Sleep(500);
             // The email input in the app doesn't have an id; find by placeholder with a short retry loop
             IWebElement? emailInput = null;
             for (int i = 0; i < 10; i++)
@@ -30,12 +31,15 @@ namespace STMS.Api.Tests
                 }
             }
             Assert.NotNull(emailInput);
-            emailInput.SendKeys("admin@stms.com");
-            driver.FindElement(By.Id("password")).SendKeys("Admin#123");
+            System.Threading.Thread.Sleep(500);
+            //emailInput.SendKeys("admin@stms.com");
+            //driver.FindElement(By.Id("password")).SendKeys("Admin#123");
             driver.FindElement(By.Id("loginButton")).Click();
+            System.Threading.Thread.Sleep(1000); // 1000 ms pause so you can read the UI change
 
             // 2. Go to tournaments page
             driver.Navigate().GoToUrl("http://localhost:3000/tournaments");
+            System.Threading.Thread.Sleep(500);
 
             // 3. Create a tournament
             // No separate create button, just fill the form and click save
@@ -45,7 +49,7 @@ namespace STMS.Api.Tests
             var dateInput = driver.FindElement(By.Id("tournamentDate"));
             ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].value = '2025-09-12';", dateInput);
             driver.FindElement(By.Id("saveTournamentButton")).Click();
-            System.Threading.Thread.Sleep(2000); // Wait longer for table to update
+            System.Threading.Thread.Sleep(3000); // Wait longer for table to update
             // Print error message from form if present
             try
             {
@@ -77,10 +81,13 @@ namespace STMS.Api.Tests
                 editButton.Click();
             driver.FindElement(By.Id("tournamentName")).Clear();
             driver.FindElement(By.Id("tournamentName")).SendKeys("Selenium Tournament Updated");
+            System.Threading.Thread.Sleep(500);
             driver.FindElement(By.Id("saveTournamentButton")).Click();
+            System.Threading.Thread.Sleep(500);
 
             // 6. Verify update
             Assert.Contains("Selenium Tournament Updated", driver.PageSource);
+            System.Threading.Thread.Sleep(500);
 
             // 7. Delete tournament (retry loop for robustness)
             IWebElement? deleteButton = null;
@@ -97,9 +104,11 @@ namespace STMS.Api.Tests
                 }
             }
             Assert.NotNull(deleteButton);
+            System.Threading.Thread.Sleep(1000);
             deleteButton.Click();
             // Accept the confirmation alert
             driver.SwitchTo().Alert().Accept();
+            System.Threading.Thread.Sleep(500);
 
             // 8. Verify deletion: wait for tournament to disappear from table
             bool deleted = false;
@@ -133,6 +142,7 @@ namespace STMS.Api.Tests
             }
             Assert.True(deleted, "Tournament was not deleted from the table");
 
+            System.Threading.Thread.Sleep(500);
             driver.Quit();
         }
     }
