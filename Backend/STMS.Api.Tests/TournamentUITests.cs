@@ -1,7 +1,6 @@
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
-//using SeleniumExtras.WaitHelpers;
 using Xunit;
 
 namespace STMS.Api.Tests
@@ -39,11 +38,11 @@ namespace STMS.Api.Tests
 
             // 2. Go to tournaments page
             driver.Navigate().GoToUrl("http://localhost:3000/tournaments");
-            System.Threading.Thread.Sleep(500);
+            System.Threading.Thread.Sleep(700);
 
             // 3. Create a tournament
             // No separate create button, just fill the form and click save
-            //driver.FindElement(By.Id("createTournamentButton")).Click();
+    
             driver.FindElement(By.Id("tournamentName")).SendKeys("Selenium Tournament");
             driver.FindElement(By.Id("tournamentVenue")).SendKeys("Selenium Venue");
             var dateInput = driver.FindElement(By.Id("tournamentDate"));
@@ -80,6 +79,7 @@ namespace STMS.Api.Tests
                 Assert.NotNull(editButton);
                 editButton.Click();
             driver.FindElement(By.Id("tournamentName")).Clear();
+            System.Threading.Thread.Sleep(500);
             driver.FindElement(By.Id("tournamentName")).SendKeys("Selenium Tournament Updated");
             System.Threading.Thread.Sleep(500);
             driver.FindElement(By.Id("saveTournamentButton")).Click();
@@ -87,7 +87,7 @@ namespace STMS.Api.Tests
 
             // 6. Verify update
             Assert.Contains("Selenium Tournament Updated", driver.PageSource);
-            System.Threading.Thread.Sleep(500);
+            System.Threading.Thread.Sleep(1000);
 
             // 7. Delete tournament (retry loop for robustness)
             IWebElement? deleteButton = null;
@@ -106,9 +106,10 @@ namespace STMS.Api.Tests
             Assert.NotNull(deleteButton);
             System.Threading.Thread.Sleep(1000);
             deleteButton.Click();
+            System.Threading.Thread.Sleep(1000);
             // Accept the confirmation alert
             driver.SwitchTo().Alert().Accept();
-            System.Threading.Thread.Sleep(500);
+            System.Threading.Thread.Sleep(700);
 
             // 8. Verify deletion: wait for tournament to disappear from table
             bool deleted = false;
@@ -142,7 +143,7 @@ namespace STMS.Api.Tests
             }
             Assert.True(deleted, "Tournament was not deleted from the table");
 
-            System.Threading.Thread.Sleep(500);
+            System.Threading.Thread.Sleep(1000);
             driver.Quit();
         }
     }
