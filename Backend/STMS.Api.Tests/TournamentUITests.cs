@@ -14,17 +14,32 @@ namespace STMS.Api.Tests
             using var driver = new ChromeDriver();
 
             // 1. Go to the login page and log in as admin
-            // driver.Navigate().GoToUrl("http://localhost:3000/login");
-            // driver.FindElement(By.Id("email")).SendKeys("admin@stms.com");
-            // driver.FindElement(By.Id("password")).SendKeys("Admin#123");
-            // driver.FindElement(By.Id("loginButton")).Click();
+            driver.Navigate().GoToUrl("http://localhost:3000/login/");
+            // The email input in the app doesn't have an id; find by placeholder with a short retry loop
+            IWebElement? emailInput = null;
+            for (int i = 0; i < 10; i++)
+            {
+                try
+                {
+                    emailInput = driver.FindElement(By.CssSelector("input[placeholder='admin@stms.com']"));
+                    break;
+                }
+                catch (NoSuchElementException)
+                {
+                    System.Threading.Thread.Sleep(200);
+                }
+            }
+            Assert.NotNull(emailInput);
+            emailInput.SendKeys("admin@stms.com");
+            driver.FindElement(By.Id("password")).SendKeys("Admin#123");
+            driver.FindElement(By.Id("loginButton")).Click();
 
             // 2. Go to tournaments page
             driver.Navigate().GoToUrl("http://localhost:3000/tournaments");
 
             // 3. Create a tournament
             // No separate create button, just fill the form and click save
-            // driver.FindElement(By.Id("createTournamentButton")).Click();
+            //driver.FindElement(By.Id("createTournamentButton")).Click();
             driver.FindElement(By.Id("tournamentName")).SendKeys("Selenium Tournament");
             driver.FindElement(By.Id("tournamentVenue")).SendKeys("Selenium Venue");
             var dateInput = driver.FindElement(By.Id("tournamentDate"));
