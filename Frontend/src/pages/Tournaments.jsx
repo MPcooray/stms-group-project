@@ -96,7 +96,7 @@ export default function Tournaments() {
               <input id="tournamentName" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
               <div className="space"></div>
               <label>Location</label>
-              <input id="tournamentName" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+              <input id="tournamentVenue" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
               <div className="space"></div>
               <label>Start Date</label>
               <input
