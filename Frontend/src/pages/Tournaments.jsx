@@ -50,6 +50,7 @@ export default function Tournaments() {
         await createTournament(form)
         setStatus("Tournament created successfully ✔")
       }
+      await new Promise(resolve => setTimeout(resolve, 800)) // slight delay to show success message
       setForm(empty)
       setEditingId(null)
       load()
@@ -74,8 +75,12 @@ export default function Tournaments() {
       await deleteTournament(id)
       setStatus("Deleted ✔")
       load()
-    } catch {
-      setStatus("Delete failed")
+    } catch (error) {
+      if (error.response?.status === 404) {
+        setStatus("Tournament not found")
+      } else {
+        setStatus("Delete failed")
+      }
     }
   }
 
@@ -88,13 +93,14 @@ export default function Tournaments() {
             <h3>{editingId ? "Edit Tournament" : "Create Tournament"}</h3>
             <form onSubmit={onSubmit}>
               <label>Name</label>
-              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <input id="tournamentName" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
               <div className="space"></div>
               <label>Location</label>
-              <input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+              <input id="tournamentVenue" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
               <div className="space"></div>
               <label>Start Date</label>
               <input
+                id="tournamentDate"
                 type="date"
                 value={form.startDate}
                 onChange={(e) => setForm({ ...form, startDate: e.target.value })}
@@ -103,7 +109,7 @@ export default function Tournaments() {
               <label>End Date</label>
               <input type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} />
               <div className="space"></div>
-              <button className="btn primary">{editingId ? "Update" : "Create"}</button>
+              <button id="saveTournamentButton" className="btn primary">{editingId ? "Update" : "Create"}</button>
               {editingId && (
                 <button
                   type="button"
