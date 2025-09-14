@@ -47,6 +47,7 @@ export default function Login() {
           <div className="space"></div>
           <label>Password</label>
           <input
+            id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -55,7 +56,7 @@ export default function Login() {
           <div className="space"></div>
           {error && <div className="error">{error}</div>}
           <div className="space"></div>
-          <button className="btn primary" disabled={loading}>
+          <button id="loginButton" className="btn primary" disabled={loading}>
             {loading ? "Signing in…" : "Sign In"}
           </button>
         </form>

@@ -1,0 +1,14 @@
+# Ignore build artifacts
+**/bin/
+**/obj/
+
+# Ignore user-specific files
+*.user
+*.vspscc
+*.vssscc
+
+# Ignore Visual Studio folder
+.vs/
+
+# Ignore Mac system files
+.DS_Store
