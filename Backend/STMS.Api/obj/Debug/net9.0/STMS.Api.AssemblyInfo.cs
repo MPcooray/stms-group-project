@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("STMS.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dc2f8100e411b05e87180b53f3eb09fff081c1d7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ad142f68372d47c5f1a36f78303de17744d9ad84")]
 [assembly: System.Reflection.AssemblyProductAttribute("STMS.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("STMS.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
