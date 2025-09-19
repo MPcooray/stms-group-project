@@ -1,6 +1,29 @@
-@STMS.Api_HostAddress = http://localhost:5287
+@host = http://localhost:5287
 
-GET {{STMS.Api_HostAddress}}/weatherforecast/
+### root
+GET {{host}}/
 Accept: application/json
 
-###
+### health
+GET {{host}}/health
+Accept: application/json
+
+### db health
+GET {{host}}/health/db
+Accept: application/json
+
+### login
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+	"email": "admin@stms.com",
+	"password": "Admin#123"
+}
+
+### me (paste token from login response)
+@token = REPLACE_WITH_JWT
+GET {{host}}/auth/me
+Authorization: Bearer {{token}}
+Accept: application/json
+
