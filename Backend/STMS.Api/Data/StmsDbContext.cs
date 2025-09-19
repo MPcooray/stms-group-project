@@ -65,11 +65,11 @@ namespace STMS.Api.Data
             {
                 e.ToTable("Timings");
                 e.HasKey(x => x.Id);
-                e.Property(x => x.Event).IsRequired().HasMaxLength(120);
+                e.Property(x => x.EventId).IsRequired();
                 e.Property(x => x.TimeMs).IsRequired();
                 e.Property(x => x.CreatedAt).HasColumnType("datetime").HasDefaultValueSql("CURRENT_TIMESTAMP");
                 e.HasOne(x => x.Player).WithMany().HasForeignKey(x => x.PlayerId).OnDelete(DeleteBehavior.Cascade);
-                e.HasIndex(x => new { x.PlayerId, x.Event });
+                e.HasIndex(x => new { x.PlayerId, x.EventId });
             });
 
             model.Entity<PlayerEvent>(e =>

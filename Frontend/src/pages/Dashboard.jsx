@@ -90,15 +90,17 @@ export default function Dashboard() {
             <td>{(t.endDate || "").toString().substring(0, 10)}</td>
                       <td className="muted">{countdownFor(t)}</td>
                       <td>
-                        <Link to={`/universities/${t.id}`} className="btn ghost">
-                          Universities
-                        </Link>{" "}
-                        <Link to={`/events/${t.id}`} className="btn ghost">
-                          Events
-                        </Link>{" "}
-                        <Link to={`/players/${t.id}`} className="btn ghost">
-                          All Players
-                        </Link>
+                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                          <Link to={`/universities/${t.id}`} className="btn ghost" style={{ minWidth: 100, padding: "6px 12px", textAlign: "center" }}>
+                            Universities
+                          </Link>
+                          <Link to={`/events/${t.id}`} className="btn ghost" style={{ minWidth: 80, padding: "6px 12px", textAlign: "center" }}>
+                            Events
+                          </Link>
+                          <Link to={`/players/${t.id}`} className="btn ghost" style={{ minWidth: 90, padding: "6px 12px", textAlign: "center" }}>
+                            All Players
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   ))}
