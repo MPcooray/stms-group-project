@@ -1,19 +1,18 @@
-"use client"
 
-import { useAuth } from "../context/AuthContext.jsx"
-import { Link, useLocation } from "react-router-dom"
+import React, { useEffect, useState } from "react";
+import { useAuth } from "../context/AuthContext.jsx";
+import { Link, useLocation } from "react-router-dom";
 
 export default function DashboardLayout({ children }) {
   const { user, logout } = useAuth()
   const location = useLocation()
 
   const menuItems = [
-    { path: "/dashboard", label: "Dashboard", icon: "📊" },
-    { path: "/tournaments", label: "Tournaments", icon: "🏆" },
-    {/*}
-    { path: "/players", label: "Players", icon: "🏊‍♂️" },
-     */}
-  ]
+  { path: "/dashboard", label: "Dashboard", icon: "📊" },
+  { path: "/tournaments", label: "Tournaments", icon: "🏆" },
+  { path: "/leaderboard", label: "Leaderboard", icon: "🥇" },
+  { path: "/results", label: "Results", icon: "📋" },
+  ];
 
   return (
     <div className="dashboard-layout">

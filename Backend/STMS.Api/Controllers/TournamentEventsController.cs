@@ -14,6 +14,7 @@ namespace STMS.Api.Controllers
     {
         private readonly StmsDbContext _db;
         public TournamentEventsController(StmsDbContext db) => _db = db;
+        // GET /api/events/{eventId}/results
 
         public record EventDto(int Id, int TournamentId, string Name);
         public record RegisteredEventDto(string Name, int Registrations);
@@ -108,6 +109,54 @@ namespace STMS.Api.Controllers
             _db.TournamentEvents.Remove(ev);
             await _db.SaveChangesAsync();
             return NoContent();
+        }
+
+        // GET /api/events/{eventId}/results
+        [HttpGet("events/{eventId:int}/results")]
+        public async Task<ActionResult<IEnumerable<object>>> GetEventResults(int eventId)
+        {
+            var eventExists = await _db.TournamentEvents.AsNoTracking().AnyAsync(e => e.Id == eventId);
+            if (!eventExists) return NotFound(new { error = "Event not found" });
+
+            var timings = await _db.Timings
+                    .Where(t => t.EventId == eventId)
+                .OrderBy(t => t.TimeMs)
+                .ToListAsync();
+
+            var playerIds = timings.Select(t => t.PlayerId).Distinct().ToList();
+            var players = await _db.Players
+                .Where(p => playerIds.Contains(p.Id))
+                .Include(p => p.University)
+                .ToListAsync();
+
+            var results = timings.Select((t, idx) =>
+            {
+                var player = players.FirstOrDefault(p => p.Id == t.PlayerId);
+                int rank = idx + 1;
+                int points = rank switch
+                {
+                    1 => 10,
+                    2 => 8,
+                    3 => 7,
+                    4 => 5,
+                    5 => 4,
+                    6 => 3,
+                    7 => 2,
+                    8 => 1,
+                    _ => 0
+                };
+                return new
+                {
+                    playerId = t.PlayerId,
+                    playerName = player?.Name ?? "",
+                    universityName = player?.University?.Name ?? "",
+                    timeMs = t.TimeMs,
+                    rank,
+                    points
+                };
+            }).ToList();
+
+            return Ok(results);
         }
     }
 }

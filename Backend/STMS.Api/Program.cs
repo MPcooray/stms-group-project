@@ -68,6 +68,12 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+// Seed events for development
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<StmsDbContext>();
+    STMS.Api.Data.SeedEvents.SeedTournamentEvents(db);
+}
 
 app.MapHealthChecks("/health/db");
 
