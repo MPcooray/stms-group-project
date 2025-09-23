@@ -7,7 +7,6 @@ export default defineConfig({
     port: 3000,
     open: true,
     proxy: {
-      // proxy /api to backend when directly calling relative paths
       "/api": {
         target: process.env.VITE_API_BASE_URL || "http://localhost:5287",
         changeOrigin: true,
@@ -20,4 +19,8 @@ export default defineConfig({
       },
     },
   },
+  // ⬇️ add this
+  build: {
+    outDir: "build"
+  }
 })
