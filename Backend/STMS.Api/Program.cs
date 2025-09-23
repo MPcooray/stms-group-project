@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using STMS.Api.Data;
+using Microsoft.Extensions.Logging;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -68,11 +69,23 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
-// Seed events for development
+// Seed events for development (do not crash the entire app if seeding fails)
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<StmsDbContext>();
-    STMS.Api.Data.SeedEvents.SeedTournamentEvents(db);
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<StmsDbContext>();
+        STMS.Api.Data.SeedEvents.SeedTournamentEvents(db);
+    }
+    catch (Exception ex)
+    {
+        // Log the error and continue. Common causes: transient network/DNS issues or Azure SQL
+        // firewall blocking the client IP while developing locally. This prevents the app from
+        // exiting immediately so you can inspect logs and fix networking in Azure.
+        logger.LogError(ex, "Database seeding failed (this is non-fatal in development).\n" +
+            "If you're using Azure SQL ensure your client IP is allowed in the server firewall rules.");
+    }
 }
 
 app.MapHealthChecks("/health/db");

@@ -1,0 +1,27 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Backend/STMS.Api/Dockerfile
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "5001:80"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Frontend/Dockerfile
+      args:
+        # The frontend is a static site served to the browser; the browser must reach the backend
+        # via a host-accessible address. Use http://localhost:5001 (mapped host port) so requests
+        # from the browser succeed when running docker-compose locally.
+        VITE_API_BASE_URL: "http://localhost:5001"
+    depends_on:
+      - backend
+    env_file:
+      - .env
+    ports:
+      - "3000:80"
