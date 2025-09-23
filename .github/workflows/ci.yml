@@ -44,6 +44,6 @@ jobs:
         run: pnpm install
       - name: Build
         run: pnpm run build
-      # Uncomment if you have frontend tests
+      # Frontend tests
       # - name: Test
       #   run: pnpm test
