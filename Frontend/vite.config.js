@@ -21,6 +21,6 @@ export default defineConfig({
   },
   // ⬇️ add this
   build: {
-    outDir: "dist"
+    outDir: "build"
   }
 })
