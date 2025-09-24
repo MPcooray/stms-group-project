@@ -50,14 +50,29 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Ensure docker compose is available
+        run: |
+          # Ubuntu runners include Docker but ensure the compose plugin is available
+          if ! docker compose version >/dev/null 2>&1; then
+            echo "docker compose not found, installing docker-compose-plugin"
+            sudo apt-get update && sudo apt-get install -y docker-compose-plugin
+          fi
+
       - name: Build images with docker compose
-        uses: docker/compose-action@v2
-        with:
-          files: |-
-            docker-compose.yml
-          run: build --pull --progress=plain
         env:
           IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
+        run: |
+          set -euo pipefail
+          docker compose -f docker-compose.yml build --pull --progress=plain
+
+      - name: Push images built by docker compose
+        env:
+          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
+        run: |
+          set -euo pipefail
+          # Push the images that were built by docker compose. Compose will push the images
+          # referenced by the image names in the compose file.
+          docker compose -f docker-compose.yml push || true
 
       - name: Tag images with sha and push
         env:
