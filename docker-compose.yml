@@ -18,8 +18,8 @@ services:
     # Example: IMAGE_REGISTRY=ghcr.io/owner -> ghcr.io/owner/stms-frontend:latest
     image: ${IMAGE_REGISTRY}/stms-frontend:latest
     build:
-      context: .
-      dockerfile: Frontend/Dockerfile
+      context: ./Frontend
+      dockerfile: Dockerfile
       args:
         # The frontend is a static site served to the browser; the browser must reach the backend
         # via a host-accessible address. Use http://localhost:5001 (mapped host port) so requests
