@@ -1,5 +1,8 @@
 services:
   backend:
+    # Image will be set at build time via the IMAGE_REGISTRY environment variable
+    # Example: IMAGE_REGISTRY=ghcr.io/owner -> ghcr.io/owner/stms-backend:latest
+    image: ${IMAGE_REGISTRY}/stms-backend:latest
     build:
       context: .
       dockerfile: Backend/STMS.Api/Dockerfile
@@ -11,6 +14,9 @@ services:
       - "5001:80"
 
   frontend:
+    # Image will be set at build time via the IMAGE_REGISTRY environment variable
+    # Example: IMAGE_REGISTRY=ghcr.io/owner -> ghcr.io/owner/stms-frontend:latest
+    image: ${IMAGE_REGISTRY}/stms-frontend:latest
     build:
       context: .
       dockerfile: Frontend/Dockerfile
