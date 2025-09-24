@@ -23,6 +23,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Compute lowercase repo owner
+        id: owner
+        run: |
+          owner="${{ github.repository_owner }}"
+          owner_lower=$(echo "$owner" | tr '[:upper:]' '[:lower:]')
+          echo "owner_lower=$owner_lower" >> $GITHUB_OUTPUT
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -37,8 +44,8 @@ jobs:
           file: ./Backend/STMS.Api/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/stms-backend:latest
-            ghcr.io/${{ github.repository_owner }}/stms-backend:${{ github.sha }}
+            ghcr.io/${{ steps.owner.outputs.owner_lower }}/stms-backend:latest
+            ghcr.io/${{ steps.owner.outputs.owner_lower }}/stms-backend:${{ github.sha }}
 
       - name: Build and push frontend image
         uses: docker/build-push-action@v5
@@ -47,5 +54,5 @@ jobs:
           file: ./Frontend/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/stms-frontend:latest
-            ghcr.io/${{ github.repository_owner }}/stms-frontend:${{ github.sha }}
+            ghcr.io/${{ steps.owner.outputs.owner_lower }}/stms-frontend:latest
+            ghcr.io/${{ steps.owner.outputs.owner_lower }}/stms-frontend:${{ github.sha }}
