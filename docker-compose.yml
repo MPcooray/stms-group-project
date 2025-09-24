@@ -1,33 +1,17 @@
 services:
-  backend:
-    # Image will be set at build time via the IMAGE_REGISTRY environment variable
-    # Example: IMAGE_REGISTRY=ghcr.io/owner -> ghcr.io/owner/stms-backend:latest
-    image: ${IMAGE_REGISTRY}/stms-backend:latest
+  app:
+    # Single combined image (build from root Dockerfile). Image name uses IMAGE_REGISTRY
+    # set by CI. The image will contain both backend and frontend assets and serve them
+    # from the ASP.NET Core runtime.
+    image: ${IMAGE_REGISTRY}/stms-app:latest
     build:
       context: .
-      dockerfile: Backend/STMS.Api/Dockerfile
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: "http://localhost:5001"
     env_file:
       - .env
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     ports:
       - "5001:80"
-
-  frontend:
-    # Image will be set at build time via the IMAGE_REGISTRY environment variable
-    # Example: IMAGE_REGISTRY=ghcr.io/owner -> ghcr.io/owner/stms-frontend:latest
-    image: ${IMAGE_REGISTRY}/stms-frontend:latest
-    build:
-      context: ./Frontend
-      dockerfile: Dockerfile
-      args:
-        # The frontend is a static site served to the browser; the browser must reach the backend
-        # via a host-accessible address. Use http://localhost:5001 (mapped host port) so requests
-        # from the browser succeed when running docker-compose locally.
-        VITE_API_BASE_URL: "http://localhost:5001"
-    depends_on:
-      - backend
-    env_file:
-      - .env
-    ports:
-      - "3000:80"

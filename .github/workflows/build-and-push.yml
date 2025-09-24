@@ -4,13 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'Backend/**'
-      - 'Frontend/**'
-      - 'stms.sln'
-      - '.github/workflows/*.yml'
-      - 'Backend/STMS.Api/Dockerfile'
-      - 'Frontend/Dockerfile'
-      - 'Dockerfile'
+      - '**'
 
 jobs:
   build-and-push:
@@ -50,44 +44,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Ensure docker compose is available
-        run: |
-          # Ubuntu runners include Docker but ensure the compose plugin is available
-          if ! docker compose version >/dev/null 2>&1; then
-            echo "docker compose not found, installing docker-compose-plugin"
-            sudo apt-get update && sudo apt-get install -y docker-compose-plugin
-          fi
-
-      - name: Build images with docker compose
-        env:
-          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
-        run: |
-          set -euo pipefail
-          docker compose -f docker-compose.yml build --pull --progress=plain
-
-      - name: Push images built by docker compose
-        env:
-          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
-        run: |
-          set -euo pipefail
-          # Push the images that were built by docker compose. Compose will push the images
-          # referenced by the image names in the compose file.
-          docker compose -f docker-compose.yml push || true
-
-      - name: Tag images with sha and push
-        env:
-          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
-        run: |
-          set -euo pipefail
-          echo "Pushing images from docker-compose with registry=${IMAGE_REGISTRY}"
-
-          # The compose file set images to ${IMAGE_REGISTRY}/stms-backend:latest and
-          # ${IMAGE_REGISTRY}/stms-frontend:latest. Retag with the commit SHA and push.
-
-          docker image tag ${IMAGE_REGISTRY}/stms-backend:latest ${IMAGE_REGISTRY}/stms-backend:${IMAGE_SHA_TAG}
-          docker image tag ${IMAGE_REGISTRY}/stms-frontend:latest ${IMAGE_REGISTRY}/stms-frontend:${IMAGE_SHA_TAG}
-
-          docker push ${IMAGE_REGISTRY}/stms-backend:latest
-          docker push ${IMAGE_REGISTRY}/stms-backend:${IMAGE_SHA_TAG}
-          docker push ${IMAGE_REGISTRY}/stms-frontend:latest
-          docker push ${IMAGE_REGISTRY}/stms-frontend:${IMAGE_SHA_TAG}
+      - name: Build and push single combined image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ steps.owner.outputs.owner_lower }}/stms-app:latest
+            ghcr.io/${{ steps.owner.outputs.owner_lower }}/stms-app:${{ github.sha }}
+          build-args: |
+            VITE_API_BASE_URL=http://localhost:5001
