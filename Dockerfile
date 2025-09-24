@@ -28,6 +28,10 @@ COPY Frontend/ ./
 RUN [ -f ./docker-entrypoint.sh ] || (echo "Frontend: docker-entrypoint.sh missing in build context" && false)
 
 RUN npm ci --legacy-peer-deps || npm install
+# Create a production env file so Vite will embed the API base at build time.
+# Use the build-time value (set via --build-arg) so CI can choose the correct path.
+RUN echo "VITE_API_BASE_URL=${VITE_API_BASE_URL}" > .env.production
+
 RUN npm run build
 
 ######### Runtime image #########

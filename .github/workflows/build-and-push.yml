@@ -54,4 +54,19 @@ jobs:
             ghcr.io/${{ steps.owner.outputs.owner_lower }}/stms-app:latest
             ghcr.io/${{ steps.owner.outputs.owner_lower }}/stms-app:${{ github.sha }}
           build-args: |
-            VITE_API_BASE_URL=http://localhost:5001
+            VITE_API_BASE_URL=/api
+
+      - name: Verify frontend build baked API base
+        env:
+          IMAGE: ghcr.io/${{ steps.owner.outputs.owner_lower }}/stms-app:latest
+        run: |
+          set -euo pipefail
+          echo "Pulling image $IMAGE"
+          docker pull $IMAGE
+
+          echo "Searching for '/api' in frontend build under /app/wwwroot"
+          # Use shell inside a temporary container to search files without running the app
+          docker run --rm --entrypoint sh $IMAGE -c "grep -R --line-number --exclude-dir=node_modules '/api' /app/wwwroot || exit 2" || {
+            echo 'ERROR: Frontend build does not contain /api references under /app/wwwroot'
+            exit 1
+          }
