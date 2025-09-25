@@ -43,7 +43,7 @@ COPY --from=build-backend /app/publish .
 
 # Copy frontend static output into ASP.NET Core's wwwroot so the backend serves it
 # The frontend Dockerfile used /app/build as the output; adjust if your build outputs to /app/dist
-COPY --from=build-frontend /app/dist ./wwwroot
+COPY --from=build-frontend /app/build ./wwwroot
 
 # Entrypoint writes runtime config for the frontend and then starts dotnet
 COPY docker-entrypoint.sh /docker-entrypoint.sh
