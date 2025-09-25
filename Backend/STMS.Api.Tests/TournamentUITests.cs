@@ -56,7 +56,7 @@ namespace STMS.Api.Tests
 
         private static void TinyPause(int ms = 250) => System.Threading.Thread.Sleep(ms);
 
-        // ────────────────────────────────────────────────────────────
+
         // Nadil
         [Fact]
         public void TournamentList_ReflectsChanges()
@@ -142,7 +142,8 @@ namespace STMS.Api.Tests
             driver.Quit();
         }
 
-        // Madara: Results flow (robust waits)
+        // Madara
+        // Results flow (robust waits)
         [Fact]
         public void ResultsFlow_TimingsToLeaderboardAndResults_E2E()
         {
