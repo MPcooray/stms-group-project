@@ -99,11 +99,16 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("frontend");
 
+// Serve static frontend files from wwwroot (populated by the Docker build)
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 // sanity endpoints
-app.MapGet("/", () => Results.Ok(new { ok = true, time = DateTime.UtcNow }));
+// Keep a lightweight API-info endpoint but serve the SPA at the site root.
+app.MapGet("/api-info", () => Results.Ok(new { ok = true, time = DateTime.UtcNow }));
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.MapGet("/db-test", async (StmsDbContext db) =>
 {
@@ -112,4 +117,8 @@ app.MapGet("/db-test", async (StmsDbContext db) =>
 });
 
 app.MapControllers();
+
+// If no other endpoint matches, serve the SPA's index.html from wwwroot
+app.MapFallbackToFile("index.html");
+
 app.Run();
