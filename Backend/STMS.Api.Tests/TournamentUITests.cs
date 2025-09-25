@@ -212,16 +212,42 @@ namespace STMS.Api.Tests
             // Timings & Rankings
             wait.Until(d => d.FindElement(By.PartialLinkText("Timings"))).Click();
 
-            // Register players 
-            IWebElement SelPlayer() => wait.Until(d => d.FindElement(By.XPath("//label[normalize-space()='Select Player']/following::select[1]")));
-            void Register(string player)
-            {
-                var sel = SelPlayer();
-                sel.Click();
-                sel.FindElement(By.XPath($".//option[contains(., '{player}')]")).Click();
-                driver.FindElement(By.XPath("//button[normalize-space()='Register']")).Click();
-                TinyPause(200);
-            }
+            // Register players
+            IWebElement SelPlayer()
+{
+    // Always re-find to avoid stale refs and ensure we pick the one after the "Select Player" label
+    return wait.Until(d => d.FindElement(By.XPath("(//label[normalize-space()='Select Player']/following::select)[1]")));
+}
+
+void Register(string player)
+{
+    // wait until options are populated AND the target option is present
+    wait.Until(_ =>
+    {
+        try
+        {
+            var sel = SelPlayer();
+            var opts = sel.FindElements(By.CssSelector("option"));
+            if (opts.Count <= 1) return false; // only placeholder present yet
+            return sel.FindElements(By.XPath($".//option[contains(normalize-space(.), '{player}')]")).Count > 0;
+        }
+        catch (StaleElementReferenceException)
+        {
+            return false;
+        }
+    });
+
+    var sel2 = SelPlayer();
+    sel2.Click();
+    sel2.FindElement(By.XPath($".//option[contains(normalize-space(.), '{player}')]")).Click();
+
+    driver.FindElement(By.XPath("//button[normalize-space()='Register']")).Click();
+
+    // confirm the player appears in the Registered table
+    wait.Until(d => d.FindElements(By.XPath($"//table//tr[td[contains(.,'{player}')]]")).Count > 0);
+    TinyPause(150);
+}
+
             Register("Alice");
             Register("Bob");
             Register("Cara");
@@ -275,8 +301,8 @@ namespace STMS.Api.Tests
             driver.Quit();
         }
 
-        
-        // Universities/Players CRUD + cascade
+
+    // Universities/Players CRUD + cascade
         [Fact]
         public void UniversitiesPlayers_CRUD_AndCascadeDelete()
         {
