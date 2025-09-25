@@ -23,7 +23,7 @@ jobs:
 
       - name: Create Deployment Annotation
         run: |
-          IMAGE=ghcr.io/${{ steps.owner.outputs.owner_lower }}/stms-app:latest
+          IMAGE=ghcr.io/${{ steps.owner.outputs.owner_lower }}/stms-app:${{ github.event.workflow_run.head_sha }}
           echo "Deployed image: $IMAGE"
           echo "Deployment time: $(date)"
           echo "Git commit: ${{ github.event.workflow_run.head_sha }}"
@@ -32,5 +32,16 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
-          images: ghcr.io/${{ steps.owner.outputs.owner_lower }}/stms-app:latest
+          images: ghcr.io/${{ steps.owner.outputs.owner_lower }}/stms-app:${{ github.event.workflow_run.head_sha }}
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+
+      # force a restart by toggling a no-op app setting (uses publish profile)
+      - name: Force restart (no-op app setting)
+        uses: azure/appservice-settings@v1
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+          app-settings-json: |
+            [
+              { "name": "FORCE_RESTART", "value": "${{ github.run_id }}", "slotSetting": false }
+            ]
