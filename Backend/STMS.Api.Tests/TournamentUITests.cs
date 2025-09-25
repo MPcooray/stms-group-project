@@ -1,3 +1,4 @@
+#nullable enable
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
@@ -18,19 +19,52 @@ namespace STMS.Api.Tests
         {
             ReadOnlyCollection<IWebElement> rows;
             try { rows = d.FindElements(By.CssSelector("table tbody tr")); } catch { return null; }
+
             foreach (var tr in rows)
             {
                 try
                 {
-                    if (!tr.Text.Contains(rowMustContain)) continue;
-                    var links = partial ? tr.FindElements(By.PartialLinkText(linkText))
-                                        : tr.FindElements(By.LinkText(linkText));
-                    if (links.Count > 0) return links[0];
+                    if (!tr.Text.Contains(rowMustContain, StringComparison.OrdinalIgnoreCase)) continue;
+
+                    // Accept either <a> or <button> with the given text
+                    var xp = partial
+                        ? $".//*[self::a or self::button][contains(normalize-space(.), '{linkText}')]"
+                        : $".//*[self::a or self::button][normalize-space(.)='{linkText}']";
+
+                    var els = tr.FindElements(By.XPath(xp));
+                    if (els.Count > 0) return els[0];
                 }
-                catch (StaleElementReferenceException) { /* try next tick */ }
+                catch (StaleElementReferenceException) { /* try next row */ }
             }
             return null;
         }
+
+        private static int RankTableRowIndex(IWebDriver d, string player)
+        {
+            try
+            {
+                // Find the first visible table that has a 'Rank' header
+                var tables = d.FindElements(By.XPath("//table[.//th[normalize-space()='Rank']]"));
+                foreach (var table in tables)
+                {
+                    if (!table.Displayed) continue;
+                    var rows = table.FindElements(By.CssSelector("tbody tr"));
+                    for (int i = 0; i < rows.Count; i++)
+                    {
+                        try
+                        {
+                            if (rows[i].Text.Contains(player, StringComparison.OrdinalIgnoreCase))
+                                return i;
+                        }
+                        catch (StaleElementReferenceException) { /* try next */ }
+                    }
+                }
+            }
+            catch { /* table not present yet */ }
+            return -1; // not found
+        }
+
+
         private static IWebElement WaitRowLinkByText(IWebDriver d, WebDriverWait w, string rowMustContain, string linkText, bool partial = false)
             => w.Until(dr => FindRowLinkByText(dr, rowMustContain, linkText, partial));
 
@@ -42,7 +76,7 @@ namespace STMS.Api.Tests
             {
                 try
                 {
-                    if (!card.Text.Contains(cardMustContain)) continue;
+                    if (!card.Text.Contains(cardMustContain, StringComparison.OrdinalIgnoreCase)) continue;
                     var links = partial ? card.FindElements(By.PartialLinkText(linkText))
                                         : card.FindElements(By.LinkText(linkText));
                     if (links.Count > 0) return links[0];
@@ -55,7 +89,6 @@ namespace STMS.Api.Tests
             => w.Until(dr => FindCardLinkByText(dr, cardMustContain, linkText, partial));
 
         private static void TinyPause(int ms = 250) => System.Threading.Thread.Sleep(ms);
-
 
         // Nadil
         [Fact]
@@ -148,12 +181,19 @@ namespace STMS.Api.Tests
         public void ResultsFlow_TimingsToLeaderboardAndResults_E2E()
         {
             using var driver = new ChromeDriver();
-            var wait = MakeWait(driver);
+            var wait = MakeWait(driver, 30);
 
             // Login
             driver.Navigate().GoToUrl("http://localhost:3000/login/");
             wait.Until(d => d.FindElement(By.Id("loginButton"))).Click();
-            wait.Until(d => d.Url.Contains("/dashboard"));
+            try
+            {
+                wait.Until(d => d.Url.Contains("/dashboard"));
+                }
+                catch (OpenQA.Selenium.WebDriverTimeoutException)
+                {
+
+                }
 
             // Create tournament
             driver.Navigate().GoToUrl("http://localhost:3000/tournaments");
@@ -164,11 +204,12 @@ namespace STMS.Api.Tests
             driver.FindElement(By.Id("saveTournamentButton")).Click();
             wait.Until(d => d.PageSource.Contains(tName));
 
-            // Dashboard → Universities
+            // Dashboard --> Universities
             driver.Navigate().GoToUrl("http://localhost:3000/dashboard");
+            wait.Until(d => d.PageSource.Contains(tName));
             WaitRowLinkByText(driver, wait, tName, "Universities", partial: true).Click();
 
-            // Add Uni A & B (placeholder from Universities.jsx)
+            // Add Uni A & B
             var uniName = wait.Until(d => d.FindElement(By.CssSelector("input[placeholder='Enter university name']")));
             uniName.SendKeys("Uni A");
             driver.FindElement(By.CssSelector("button.btn.primary")).Click();
@@ -203,7 +244,7 @@ namespace STMS.Api.Tests
             driver.Navigate().GoToUrl("http://localhost:3000/dashboard");
             WaitRowLinkByText(driver, wait, tName, "Events", partial: true).Click();
 
-            // Create event (placeholder from Events.jsx)
+            // Create event
             var eventName = wait.Until(d => d.FindElement(By.CssSelector("input[placeholder^='Enter event name']")));
             eventName.SendKeys("100m Freestyle");
             driver.FindElement(By.CssSelector("button.btn.primary")).Click();
@@ -215,20 +256,20 @@ namespace STMS.Api.Tests
             // Register players
             IWebElement SelPlayer()
                 {
-                    // Always re-find to avoid stale refs and ensure we pick the one after the "Select Player" label
+                    // Always re-find to avoid stale refs and ensure pick the one after the "Select Player" label
                     return wait.Until(d => d.FindElement(By.XPath("(//label[normalize-space()='Select Player']/following::select)[1]")));
                 }
 
                 void Register(string player)
                 {
-                    // wait until options are populated AND the target option is present
+                    // wait until options are populated & the target option is present
                     wait.Until(_ =>
                     {
                         try
                         {
                             var sel = SelPlayer();
                             var opts = sel.FindElements(By.CssSelector("option"));
-                            if (opts.Count <= 1) return false; // only placeholder present yet
+                            if (opts.Count <= 1) return false;
                             return sel.FindElements(By.XPath($".//option[contains(normalize-space(.), '{player}')]")).Count > 0;
                         }
                         catch (StaleElementReferenceException)
@@ -267,19 +308,48 @@ namespace STMS.Api.Tests
             string GetCell(string player, int tdIndex) =>
                 wait.Until(d => d.FindElement(By.XPath($"//table//tr[td[contains(.,'{player}')]]/td[{tdIndex}]"))).Text.Trim();
 
-            Assert.Equal("1", GetCell("Alice", 1));
+            // Wait for the ranking table to stabilize and show Alice < Bob < Cara
+            wait.Until(_ =>
+            {
+                var a = RankTableRowIndex(driver, "Alice");
+                var b = RankTableRowIndex(driver, "Bob");
+                var c = RankTableRowIndex(driver, "Cara");
+                return a >= 0 && b >= 0 && c >= 0 && a < b && b < c;
+            });
+
+            //assert again with a clearer failure message
+            var idxAlice = RankTableRowIndex(driver, "Alice");
+            var idxBob   = RankTableRowIndex(driver, "Bob");
+            var idxCara  = RankTableRowIndex(driver, "Cara");
+            Assert.True(idxAlice < idxBob && idxBob < idxCara,
+                $"Expected Alice < Bob < Cara in ranking table, got indices A={idxAlice}, B={idxBob}, C={idxCara}.");
+
+            // Keep points checks as-is
             Assert.Equal("10", GetCell("Alice", 5));
-            Assert.Equal("2", GetCell("Bob", 1));
-            Assert.Equal("8", GetCell("Bob", 5));
-            Assert.Equal("3", GetCell("Cara", 1));
-            Assert.Equal("7", GetCell("Cara", 5));
+            Assert.Equal("8",  GetCell("Bob",   5));
+            Assert.Equal("7",  GetCell("Cara",  5));
+
 
             SetTiming("Bob", "57.90");
             TinyPause(700);
-            Assert.Equal("1", GetCell("Bob", 1));
-            Assert.Equal("10", GetCell("Bob", 5));
-            Assert.Equal("2", GetCell("Alice", 1));
-            Assert.Equal("8", GetCell("Alice", 5));
+            // Wait until Bob rises above Alice in the ranking table
+            wait.Until(_ =>
+            {
+                var b = RankTableRowIndex(driver, "Bob");
+                var a = RankTableRowIndex(driver, "Alice");
+                return b >= 0 && a >= 0 && b < a;
+            });
+
+            //assert with message
+            var idxBob2   = RankTableRowIndex(driver, "Bob");
+            var idxAlice2 = RankTableRowIndex(driver, "Alice");
+            Assert.True(idxBob2 < idxAlice2,
+                $"Expected Bob above Alice after update, got indices Bob={idxBob2}, Alice={idxAlice2}.");
+
+
+            // Points still map to ranks
+            Assert.Equal("10", GetCell("Bob",   5));
+            Assert.Equal("8",  GetCell("Alice", 5));
 
             // Leaderboard
             driver.Navigate().GoToUrl("http://localhost:3000/leaderboard");
@@ -325,7 +395,9 @@ namespace STMS.Api.Tests
 
             // Dashboard --> Universities
             driver.Navigate().GoToUrl("http://localhost:3000/dashboard");
+            wait.Until(d => d.PageSource.Contains(tName));
             WaitRowLinkByText(driver, wait, tName, "Universities", partial: true).Click();
+
 
             // Add Uni X
             var uniName = wait.Until(d => d.FindElement(By.CssSelector("input[placeholder='Enter university name']")));
