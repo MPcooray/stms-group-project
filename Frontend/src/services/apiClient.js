@@ -19,7 +19,12 @@ function getApiBase() {
     return import.meta.env.VITE_API_BASE_URL
   }
   // final fallback (matches backend mapping used in docker-compose)
-  return "http://localhost:5001"
+  // Build-time override (Vite) if provided; otherwise same-origin
+  if (import.meta && import.meta.env && import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL
+  }
+  // Same-origin default so the SPA calls its own host (no CORS)
+  return ""
 }
 
 const api = axios.create({
