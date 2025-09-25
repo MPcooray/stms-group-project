@@ -276,7 +276,7 @@ namespace STMS.Api.Tests
         }
 
         
-        // NEW TEST 2: Universities/Players CRUD + cascade
+        // Universities/Players CRUD + cascade
         [Fact]
         public void UniversitiesPlayers_CRUD_AndCascadeDelete()
         {
