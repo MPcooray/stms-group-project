@@ -35,13 +35,13 @@ jobs:
           images: ghcr.io/${{ steps.owner.outputs.owner_lower }}/stms-app:${{ github.event.workflow_run.head_sha }}
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
 
-      # force a restart by toggling a no-op app setting (uses publish profile)
-      - name: Force restart (no-op app setting)
-        uses: azure/appservice-settings@v1
-        with:
-          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
-          app-settings-json: |
-            [
-              { "name": "FORCE_RESTART", "value": "${{ github.run_id }}", "slotSetting": false }
-            ]
+    #   # force a restart by toggling a no-op app setting (uses publish profile)
+    #   - name: Force restart (no-op app setting)
+    #     uses: azure/appservice-settings@v1
+    #     with:
+    #       app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+    #       publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+    #       app-settings-json: |
+    #         [
+    #           { "name": "FORCE_RESTART", "value": "${{ github.run_id }}", "slotSetting": false }
+    #         ]
