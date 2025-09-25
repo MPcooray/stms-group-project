@@ -38,7 +38,7 @@ export default function Login() {
   return (
     <div className="container" style={{ maxWidth: 480, marginTop: 80 }}>
       <div className="card">
-        <h2>Admin gogin</h2>
+        <h2>Admin </h2>
         <p className="muted">Sign in to manage STMS.</p>
         <div className="space"></div>
         <form onSubmit={handleSubmit}>
