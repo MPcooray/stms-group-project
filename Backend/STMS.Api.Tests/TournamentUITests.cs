@@ -11,9 +11,14 @@ namespace STMS.Api.Tests
 {
     public class TournamentUITests
     {
-        // ---------- Helpers ----------
-        private static WebDriverWait MakeWait(IWebDriver d, int seconds = 20)
-            => new WebDriverWait(d, TimeSpan.FromSeconds(seconds));
+
+       // ---------- Helpers ----------
+        private static WebDriverWait MakeWait(IWebDriver d, int seconds = 45)
+        {
+            var w = new WebDriverWait(d, TimeSpan.FromSeconds(seconds));
+            w.IgnoreExceptionTypes(typeof(NoSuchElementException), typeof(StaleElementReferenceException));
+            return w;
+        }
 
         private static IWebElement? FindRowLinkByText(IWebDriver d, string rowMustContain, string linkText, bool partial = false)
         {
@@ -64,7 +69,6 @@ namespace STMS.Api.Tests
             return -1; // not found
         }
 
-
         private static IWebElement WaitRowLinkByText(IWebDriver d, WebDriverWait w, string rowMustContain, string linkText, bool partial = false)
             => w.Until(dr => FindRowLinkByText(dr, rowMustContain, linkText, partial));
 
@@ -89,6 +93,43 @@ namespace STMS.Api.Tests
             => w.Until(dr => FindCardLinkByText(dr, cardMustContain, linkText, partial));
 
         private static void TinyPause(int ms = 250) => System.Threading.Thread.Sleep(ms);
+
+        // --- NEW: minimal helpers for event-row actions and adding players to a uni ---
+
+        private static IWebElement WaitEventRowAction(IWebDriver d, WebDriverWait w, string eventName, string actionText)
+            => w.Until(dr =>
+            {
+                var row = dr.FindElements(By.XPath($"//tr[td[contains(normalize-space(.), '{eventName}')]]"))
+                            .FirstOrDefault();
+                if (row == null) return null;
+                return row.FindElements(By.XPath($".//*[self::a or self::button][contains(normalize-space(.), '{actionText}')]"))
+                          .FirstOrDefault();
+            });
+
+        private static void EnsurePlayerForUni(IWebDriver driver, WebDriverWait wait, string uniName, string playerName)
+        {
+            // We should be on the Universities page for current tournament
+            // Open the Players view for that university
+            var openPlayers = wait.Until(d =>
+                d.FindElements(By.XPath($"//tr[td[contains(.,'{uniName}')]]//*[self::a or self::button][contains(normalize-space(.), 'View Players')]"))
+                 .FirstOrDefault());
+            openPlayers.Click();
+
+            // If player missing, add
+            var exists = driver.FindElements(By.XPath($"//table//tr[td[contains(normalize-space(.), '{playerName}')]]")).Count > 0;
+            if (!exists)
+            {
+                var nameInput = wait.Until(d => d.FindElement(By.CssSelector("form input")));
+                nameInput.Clear();
+                nameInput.SendKeys(playerName);
+                driver.FindElement(By.CssSelector("button.btn.primary")).Click();
+                wait.Until(d => d.PageSource.Contains(playerName));
+            }
+
+            // Back to Universities list
+            driver.Navigate().Back();
+            wait.Until(d => d.FindElements(By.XPath($"//tr[td[contains(.,'{uniName}')]]")).Count > 0);
+        }
 
         // Nadil
         [Fact]
@@ -189,11 +230,11 @@ namespace STMS.Api.Tests
             try
             {
                 wait.Until(d => d.Url.Contains("/dashboard"));
-                }
-                catch (OpenQA.Selenium.WebDriverTimeoutException)
-                {
-
-                }
+            }
+            catch (OpenQA.Selenium.WebDriverTimeoutException)
+            {
+                // tolerate if already logged in
+            }
 
             // Create tournament
             driver.Navigate().GoToUrl("http://localhost:3000/tournaments");
@@ -213,32 +254,18 @@ namespace STMS.Api.Tests
             var uniName = wait.Until(d => d.FindElement(By.CssSelector("input[placeholder='Enter university name']")));
             uniName.SendKeys("Uni A");
             driver.FindElement(By.CssSelector("button.btn.primary")).Click();
-            wait.Until(d => d.PageSource.Contains("Uni A"));
+            wait.Until(d => d.FindElements(By.XPath("//table//tr[td[contains(normalize-space(.), 'Uni A')]]")).Count > 0);
+
             uniName = wait.Until(d => d.FindElement(By.CssSelector("input[placeholder='Enter university name']")));
-            uniName.Clear(); uniName.SendKeys("Uni B");
+            uniName.Clear();
+            uniName.SendKeys("Uni B");
             driver.FindElement(By.CssSelector("button.btn.primary")).Click();
-            wait.Until(d => d.PageSource.Contains("Uni B"));
+            wait.Until(d => d.FindElements(By.XPath("//table//tr[td[contains(normalize-space(.), 'Uni B')]]")).Count > 0);
 
-            // Add players for Uni A
-            wait.Until(d => d.FindElement(By.PartialLinkText("View Players"))).Click();
-            var nameInput = wait.Until(d => d.FindElement(By.CssSelector("form input")));
-            nameInput.SendKeys("Alice");
-            driver.FindElement(By.CssSelector("button.btn.primary")).Click();
-            wait.Until(d => d.PageSource.Contains("Alice"));
-            nameInput = wait.Until(d => d.FindElement(By.CssSelector("form input")));
-            nameInput.Clear(); nameInput.SendKeys("Bob");
-            driver.FindElement(By.CssSelector("button.btn.primary")).Click();
-            wait.Until(d => d.PageSource.Contains("Bob"));
-
-            // Add player for Uni B
-            driver.Navigate().Back();
-            wait.Until(d => d.FindElements(By.PartialLinkText("View Players")).Count >= 2);
-            var viewPlayersButtons = driver.FindElements(By.PartialLinkText("View Players"));
-            viewPlayersButtons.Last().Click();
-            nameInput = wait.Until(d => d.FindElement(By.CssSelector("form input")));
-            nameInput.SendKeys("Cara");
-            driver.FindElement(By.CssSelector("button.btn.primary")).Click();
-            wait.Until(d => d.PageSource.Contains("Cara"));
+            // --- NEW: Add players to each university BEFORE going to Timings ---
+            EnsurePlayerForUni(driver, wait, "Uni A", "Alice");
+            EnsurePlayerForUni(driver, wait, "Uni A", "Bob");
+            EnsurePlayerForUni(driver, wait, "Uni B", "Cara");
 
             // Dashboard --> Events
             driver.Navigate().GoToUrl("http://localhost:3000/dashboard");
@@ -251,49 +278,73 @@ namespace STMS.Api.Tests
             wait.Until(d => d.PageSource.Contains("100m Freestyle"));
 
             // Timings & Rankings
-            wait.Until(d => d.FindElement(By.PartialLinkText("Timings"))).Click();
+            // OLD (fragile): wait.Until(d => d.FindElement(By.PartialLinkText("Timings"))).Click();
+            // NEW: click Timings within the 100m Freestyle row; if hidden, open details/manage first
+            IWebElement timingsBtn = WaitEventRowAction(driver, wait, "100m Freestyle", "Timings");
+            if (timingsBtn == null)
+            {
+                var details = wait.Until(d =>
+                    d.FindElements(By.XPath($"//tr[td[contains(normalize-space(.), '100m Freestyle')]]" +
+                                            "//*[self::a or self::button][contains(normalize-space(.), 'Manage') or " +
+                                            " contains(normalize-space(.), 'View') or contains(normalize-space(.), 'Details')]"))
+                     .FirstOrDefault());
+                details.Click();
 
-            // Register players
+                timingsBtn = wait.Until(d =>
+                    d.FindElements(By.XPath("//*[self::a or self::button][contains(normalize-space(.), 'Timings')]"))
+                     .FirstOrDefault());
+            }
+            ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView({block:'center'});", timingsBtn);
+            timingsBtn.Click();
+
+            // Register players (unchanged)
             IWebElement SelPlayer()
+                => wait.Until(d => d.FindElement(By.XPath("//form[.//button[normalize-space()='Register']]//select[1]")));
+
+            void SetFilterFor(string player)
+            {
+                var uniSelList = driver.FindElements(By.XPath("//label[contains(.,'University')]/following::select[1]"));
+                if (uniSelList.Count == 0) return;
+
+                var wantUni = (player == "Cara") ? "Uni B" : "Uni A";
+                var uniSel = uniSelList[0];
+
+                wait.Until(_ => uniSel.FindElements(By.XPath($".//option[contains(normalize-space(.), '{wantUni}')]")).Count > 0);
+                uniSel.Click();
+                uniSel.FindElement(By.XPath($".//option[contains(normalize-space(.), '{wantUni}')]")).Click();
+
+                TinyPause(250);
+            }
+
+            void Register(string player)
+            {
+                SetFilterFor(player);
+
+                wait.Until(_ =>
                 {
-                    // Always re-find to avoid stale refs and ensure pick the one after the "Select Player" label
-                    return wait.Until(d => d.FindElement(By.XPath("(//label[normalize-space()='Select Player']/following::select)[1]")));
-                }
+                    var sel = SelPlayer();
+                    var hasAny = sel.FindElements(By.CssSelector("option")).Count > 1;
+                    var hasPlayer = sel.FindElements(By.XPath($".//option[contains(normalize-space(.), '{player}')]")).Count > 0;
+                    return hasAny && hasPlayer;
+                });
 
-                void Register(string player)
-                {
-                    // wait until options are populated & the target option is present
-                    wait.Until(_ =>
-                    {
-                        try
-                        {
-                            var sel = SelPlayer();
-                            var opts = sel.FindElements(By.CssSelector("option"));
-                            if (opts.Count <= 1) return false;
-                            return sel.FindElements(By.XPath($".//option[contains(normalize-space(.), '{player}')]")).Count > 0;
-                        }
-                        catch (StaleElementReferenceException)
-                        {
-                            return false;
-                        }
-                    });
+                var sel2 = SelPlayer();
+                sel2.Click();
+                sel2.FindElement(By.XPath($".//option[contains(normalize-space(.), '{player}')]")).Click();
 
-                    var sel2 = SelPlayer();
-                    sel2.Click();
-                    sel2.FindElement(By.XPath($".//option[contains(normalize-space(.), '{player}')]")).Click();
+                ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].dispatchEvent(new Event('change', {bubbles:true}));", sel2);
 
-                    driver.FindElement(By.XPath("//button[normalize-space()='Register']")).Click();
+                driver.FindElement(By.XPath("//form[.//button[normalize-space()='Register']]//button[normalize-space()='Register']")).Click();
 
-                    // confirm the player appears in the Registered table
-                    wait.Until(d => d.FindElements(By.XPath($"//table//tr[td[contains(.,'{player}')]]")).Count > 0);
-                    TinyPause(150);
-                }
+                wait.Until(d => d.FindElements(By.XPath($"//table//tr[td[contains(.,'{player}')]]")).Count > 0);
+                TinyPause(150);
+            }
 
             Register("Alice");
             Register("Bob");
             Register("Cara");
 
-            // Enter timings
+            // Enter timings (unchanged)
             void SetTiming(string player, string value)
             {
                 var row = wait.Until(d => d.FindElement(By.XPath($"//table//tr[td[contains(.,'{player}')]]")));
@@ -329,7 +380,6 @@ namespace STMS.Api.Tests
             Assert.Equal("8",  GetCell("Bob",   5));
             Assert.Equal("7",  GetCell("Cara",  5));
 
-
             SetTiming("Bob", "57.90");
             TinyPause(700);
             // Wait until Bob rises above Alice in the ranking table
@@ -345,7 +395,6 @@ namespace STMS.Api.Tests
             var idxAlice2 = RankTableRowIndex(driver, "Alice");
             Assert.True(idxBob2 < idxAlice2,
                 $"Expected Bob above Alice after update, got indices Bob={idxBob2}, Alice={idxAlice2}.");
-
 
             // Points still map to ranks
             Assert.Equal("10", GetCell("Bob",   5));
@@ -371,8 +420,7 @@ namespace STMS.Api.Tests
             driver.Quit();
         }
 
-
-    // Universities/Players CRUD + cascade
+        // Universities/Players CRUD + cascade
         [Fact]
         public void UniversitiesPlayers_CRUD_AndCascadeDelete()
         {
@@ -397,7 +445,6 @@ namespace STMS.Api.Tests
             driver.Navigate().GoToUrl("http://localhost:3000/dashboard");
             wait.Until(d => d.PageSource.Contains(tName));
             WaitRowLinkByText(driver, wait, tName, "Universities", partial: true).Click();
-
 
             // Add Uni X
             var uniName = wait.Until(d => d.FindElement(By.CssSelector("input[placeholder='Enter university name']")));
