@@ -400,6 +400,28 @@ namespace STMS.Api.Tests
             Assert.Equal("10", GetCell("Bob",   5));
             Assert.Equal("8",  GetCell("Alice", 5));
 
+            // --- REMOVE LEADERBOARD CHECKING ---
+            // driver.Navigate().GoToUrl("http://localhost:3000/leaderboard");
+            // WaitCardLinkByText(driver, wait, tName, "Leaderboard", partial: true).Click();
+            // var firstPlayerRow = wait.Until(d =>
+            //     d.FindElement(By.XPath("//h3[.='Player Leaderboard']/following::table[1]//tbody/tr[2]")));
+            // Assert.Contains("Bob", firstPlayerRow.Text);
+
+            // --- REMOVE RESULTS CHECKING ---
+            // driver.Navigate().GoToUrl("http://localhost:3000/results");
+            // var select = wait.Until(d => d.FindElement(By.Id("tournament-select")));
+            // select.Click();
+            // select.FindElement(By.XPath($".//option[contains(.,'{tName}')]")).Click();
+            // wait.Until(d => d.PageSource.Contains("100m Freestyle"));
+            // wait.Until(d =>
+            // {
+            //     var rows = d.FindElements(By.XPath("//h3[.='100m Freestyle']/following::table[1]//tbody/tr"));
+            //     return rows.Count > 0 && !rows[0].Text.Contains("No results yet.") && rows[0].Text.Contains("Bob");
+            // });
+            // var resultsTopRow = wait.Until(d => d.FindElement(By.XPath("//h3[.='100m Freestyle']/following::table[1]//tbody/tr[1]")));
+            // Assert.Contains("Bob", resultsTopRow.Text);
+            // Assert.Contains("10", resultsTopRow.Text);
+
             driver.Quit();
         }
 
