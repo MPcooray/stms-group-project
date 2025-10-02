@@ -19,7 +19,7 @@ export default defineConfig({
       },
     },
   },
-  // ⬇️ add this
+  
   build: {
     outDir: "build"
   }
