@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { getProfile, login as loginApi, logout as logoutApi } from "../services/authService.js"
 
 const AuthContext = createContext(null)
@@ -8,6 +9,7 @@ const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [token, setToken] = useState(localStorage.getItem("token"))
+  const navigate = useNavigate()
 
   useEffect(() => {
     if (token) {
@@ -34,6 +36,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("token")
     setToken(null)
     setUser(null)
+    navigate("/") // Redirect to PublicHome page
   }
 
   return (
