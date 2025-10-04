@@ -28,7 +28,7 @@ export default function PublicTournaments() {
       <header className="public-header">
         <div className="container">
           <div className="header-content">
-            <Link to="/" className="brand">STMS</Link>
+            <Link to="/" className="brand">AquaChamps</Link>
             <nav className="public-nav">
               <Link to="/" className="nav-link">Home</Link>
               <Link to="/public/tournaments" className="nav-link active">Tournaments</Link>
@@ -59,19 +59,19 @@ export default function PublicTournaments() {
                   <div className="tournament-header">
                     <h3>{tournament.name}</h3>
                     <span className="tournament-date">
-                      {tournament.date ? new Date(tournament.date).toLocaleDateString() : 'Date TBD'}
+                      {tournament.startDate ? new Date(tournament.startDate).toLocaleDateString() : 'Date TBD'}
                     </span>
                   </div>
                   
                   <div className="tournament-details">
                     <p className="venue">
                       <span className="icon">📍</span>
-                      {tournament.venue || 'Venue TBD'}
+                      {tournament.location || 'Venue TBD'}
                     </p>
                     {tournament.endDate && (
                       <p className="duration">
                         <span className="icon">📅</span>
-                        {tournament.date ? new Date(tournament.date).toLocaleDateString() : 'Start TBD'} - {tournament.endDate ? new Date(tournament.endDate).toLocaleDateString() : 'End TBD'}
+                        {tournament.startDate ? new Date(tournament.startDate).toLocaleDateString() : 'Start TBD'} - {tournament.endDate ? new Date(tournament.endDate).toLocaleDateString() : 'End TBD'}
                       </p>
                     )}
                   </div>
