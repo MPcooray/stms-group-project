@@ -12,7 +12,7 @@ export default function AllPlayers() {
   const [status, setStatus] = useState("")
 
   const load = async () => {
-    setStatus("")
+    // Preserve any existing status so user can still read success/error messages
     try {
       // Simulate API call with dummy data for all players under tournamentId
       const dummyData = {
@@ -64,11 +64,7 @@ export default function AllPlayers() {
       }
 
       if (editingId) {
-        setItems(
-          items.map((it) =>
-            it.id === editingId ? { ...it, ...payload } : it
-          )
-        )
+        setItems(items.map((it) => (it.id === editingId ? { ...it, ...payload } : it)))
         setStatus("Player updated successfully ✔")
       } else {
         const newPlayer = { id: Date.now(), ...payload }
@@ -77,7 +73,6 @@ export default function AllPlayers() {
       }
       setForm(empty)
       setEditingId(null)
-      load()
     } catch (error) {
       setStatus(error.message || "Save failed")
     }
@@ -98,7 +93,6 @@ export default function AllPlayers() {
     try {
       setItems(items.filter((it) => it.id !== id))
       setStatus("Player deleted successfully ✔")
-      load()
     } catch {
       setStatus("Delete failed")
     }

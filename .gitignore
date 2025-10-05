@@ -1,2 +1,17 @@
 # Ignore Mac system files
 .DS_Store
+
+# Node / Frontend artifacts (defensive if run at root)
+node_modules/
+*.log
+/.vite
+coverage/
+
+# Playwright artifacts
+playwright-report/
+blob-report/
+trace.zip
+
+# Editor
+.idea/
+*.swp

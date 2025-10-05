@@ -11,11 +11,13 @@ describe('PublicTournaments', () => {
 
   it('renders tournaments list', async () => {
     listTournaments.mockResolvedValueOnce([
-      { id: 10, name: 'Championship', venue: 'Central Pool', date: '2025-12-15' }
+      { id: 10, name: 'Championship', location: 'Central Pool', startDate: null, endDate: null }
     ]);
     renderWithRouter(<PublicTournaments />);
     expect(await screen.findByText('Championship')).toBeInTheDocument();
     expect(screen.getByText(/Central Pool/)).toBeInTheDocument();
+    // Date TBD text because startDate is null
+    expect(screen.getByText(/Date TBD/)).toBeInTheDocument();
   });
 
   it('renders empty state when no tournaments', async () => {

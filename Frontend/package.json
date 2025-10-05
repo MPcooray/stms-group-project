@@ -8,7 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "playwright test"
   },
   "dependencies": {
     "axios": "^1.7.2",
@@ -24,22 +26,51 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.13",
+    "@testing-library/jest-dom": "6.6.3",
+    "@testing-library/react": "16.1.0",
+    "@testing-library/user-event": "14.5.2",
+  "@playwright/test": "^1.48.2",
     "@types/node": "24.3.1",
     "@types/react": "19.1.12",
     "@types/react-dom": "19.1.9",
     "@vitejs/plugin-react": "^4.7.0",
-    "@testing-library/jest-dom": "6.6.3",
-    "@testing-library/react": "16.1.0",
-    "@testing-library/user-event": "14.5.2",
+    "@vitest/coverage-v8": "^3.2.4",
     "jsdom": "25.0.1",
     "postcss": "8.5.6",
     "tailwindcss": "4.1.13",
-    "vitest": "2.1.4",
     "typescript": "5.9.2",
-    "vite": "^7.1.5"
-  }
-  ,"vitest": {
+    "vite": "^7.1.5",
+    "vitest": "^3.2.4"
+  },
+  "vitest": {
     "environment": "jsdom",
-    "setupFiles": ["./src/setupTests.js"]
+    "setupFiles": [
+      "./src/setupTests.js"
+    ],
+    "test": {
+      "exclude": [
+        "ui-tests/**"
+      ]
+    },
+    "coverage": {
+      "provider": "v8",
+      "reportsDirectory": "./coverage",
+      "reporter": [
+        "text",
+        "html",
+        "lcov"
+      ],
+      "exclude": [
+        "node_modules/**",
+        "src/tests/**",
+        "src/**/*.test.{js,jsx,ts,tsx}",
+        "src/**/__tests__/**",
+        "ui-tests/**"
+      ],
+      "lines": 70,
+      "functions": 70,
+      "branches": 60,
+      "statements": 70
+    }
   }
 }

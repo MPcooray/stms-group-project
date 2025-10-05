@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { listTournaments } from "../services/tournamentService.js";
 
 export default function PublicHome() {
@@ -28,7 +28,7 @@ export default function PublicHome() {
       <header className="public-header">
         <div className="container">
           <div className="header-content">
-            <h1 className="brand">Swimming Tournament Management System</h1>
+            <h1 className="brand">AquaChamps</h1>
             <Link to="/login" className="admin-login-btn" title="Admin Login">
               🔒
             </Link>
@@ -40,7 +40,7 @@ export default function PublicHome() {
       <main className="public-main">
         <div className="container">
           <div className="hero-section">
-            <h2>Welcome to STMS</h2>
+            <h2>Welcome to AquaChamps</h2>
             <p>View live tournament results, leaderboards, and swimming competition data.</p>
           </div>
 
@@ -74,20 +74,32 @@ export default function PublicHome() {
               <p className="muted">Loading tournaments...</p>
             ) : tournaments.length > 0 ? (
               <div className="tournament-grid">
-                {tournaments.slice(0, 3).map((tournament) => (
+                {tournaments.slice(0, 4).map((tournament) => (
                   <div key={tournament.id} className="tournament-preview-card">
                     <h4>{tournament.name}</h4>
-                    <p className="muted">{tournament.venue || 'Venue TBD'}</p>
-                    <p className="muted">
-                      {tournament.date ? new Date(tournament.date).toLocaleDateString() : 'Date TBD'}
+                    <p className="venue">
+                      <span className="icon">📍 </span>
+                      {tournament.location || 'Venue TBD'}
                     </p>
-                    <Link 
-                      to={`/public/tournaments/${tournament.id}/results`} 
-                      className="btn ghost small"
-                    >
+                    <p className="duration">
+                     <span className="icon">📅 </span>
+                      {tournament.startDate
+                     ? new Date(tournament.startDate).toLocaleDateString()
+                           : 'Start TBD'} - {tournament.endDate
+                     ? new Date(tournament.endDate).toLocaleDateString()
+                           : 'End TBD'}
+                    </p>
+
+                   {/* button wrapper for spacing */}
+                  <div style={{ marginTop: "12px" }}>
+                   <Link
+                       to={`/public/tournaments/${tournament.id}/results`}
+                       className="btn ghost small"
+                      >
                       View Results
-                    </Link>
+                   </Link>
                   </div>
+              </div>
                 ))}
               </div>
             ) : (
@@ -100,7 +112,7 @@ export default function PublicHome() {
       {/* Footer */}
       <footer className="public-footer">
         <div className="container">
-          <p>&copy; 2025 Swimming Tournament Management System</p>
+          <p>&copy; 2025 AquaChamps</p>
         </div>
       </footer>
     </div>

@@ -10,6 +10,23 @@
 # production
 /build
 
+# test coverage output (Vitest / Istanbul)
+/coverage
+
+# vitest / playwright transient artifacts
+/test-results
+/playwright-report
+/blob-report
+/trace.zip
+
+# Vite cache
+/.vite
+
+# OS / Editor
+.idea/
+*.swp
+*.log
+
 # debug
 npm-debug.log*
 yarn-debug.log*

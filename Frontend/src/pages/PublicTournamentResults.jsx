@@ -1,8 +1,8 @@
-import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { listTournaments } from "../services/tournamentService.js";
+import { Link, useParams } from "react-router-dom";
 import { listEventsByTournament } from "../services/eventService.js";
 import { getEventResults } from "../services/resultsService.js";
+import { listTournaments } from "../services/tournamentService.js";
 
 export default function PublicTournamentResults() {
   const { tournamentId } = useParams();
@@ -78,7 +78,7 @@ export default function PublicTournamentResults() {
       <div className="public-page">
         <header className="public-header">
           <div className="container">
-            <Link to="/" className="brand">STMS</Link>
+            <Link to="/" className="brand">AquaChamps</Link>
           </div>
         </header>
         <main className="public-main">
@@ -97,7 +97,7 @@ export default function PublicTournamentResults() {
       <div className="public-page">
         <header className="public-header">
           <div className="container">
-            <Link to="/" className="brand">STMS</Link>
+            <Link to="/" className="brand">AquaChamps</Link>
           </div>
         </header>
         <main className="public-main">
@@ -118,7 +118,7 @@ export default function PublicTournamentResults() {
       <header className="public-header">
         <div className="container">
           <div className="header-content">
-            <Link to="/" className="brand">STMS</Link>
+            <Link to="/" className="brand">AquaChamps</Link>
             <nav className="public-nav">
               <Link to="/" className="nav-link">Home</Link>
               <Link to="/public/tournaments" className="nav-link">Tournaments</Link>
@@ -138,8 +138,8 @@ export default function PublicTournamentResults() {
             <div className="tournament-info">
               <h1>{tournament.name}</h1>
               <p className="tournament-meta">
-                <span className="venue">📍 {tournament.venue}</span>
-                <span className="date">📅 {new Date(tournament.date).toLocaleDateString()}</span>
+                <span className="venue">📍 {tournament.location}</span>
+                <span className="date">📅 {new Date(tournament.startDate).toLocaleDateString()}</span>
               </p>
             </div>
             <div className="tournament-actions">
@@ -232,7 +232,7 @@ export default function PublicTournamentResults() {
                   <p>Total Results</p>
                 </div>
                 <div className="stat-card">
-                  <h4>{tournament.venue}</h4>
+                  <h4>{tournament.location}</h4>
                   <p>Venue</p>
                 </div>
               </div>
@@ -240,8 +240,8 @@ export default function PublicTournamentResults() {
               <div className="tournament-description">
                 <h3>Tournament Information</h3>
                 <p><strong>Name:</strong> {tournament.name}</p>
-                <p><strong>Venue:</strong> {tournament.venue}</p>
-                <p><strong>Date:</strong> {new Date(tournament.date).toLocaleDateString()}</p>
+                <p><strong>Venue:</strong> {tournament.location}</p>
+                <p><strong>Date:</strong> {new Date(tournament.startDate).toLocaleDateString()}</p>
                 {tournament.endDate && (
                   <p><strong>End Date:</strong> {new Date(tournament.endDate).toLocaleDateString()}</p>
                 )}
