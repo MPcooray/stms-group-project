@@ -12,7 +12,7 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="navbar-brand">
-        <h2>STMS</h2>
+        <h2>AquaChamps</h2>
       </div>
       <div className="navbar-user">
         <span>Welcome, {user?.email}</span>
