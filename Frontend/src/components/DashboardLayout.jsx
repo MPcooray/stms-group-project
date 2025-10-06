@@ -19,7 +19,7 @@ export default function DashboardLayout({ children }) {
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-header">
-          <h2 className="brand">STMS</h2>
+          <h2 className="brand">AquaChamps</h2>
         </div>
         <nav className="sidebar-nav">
           {menuItems.map((item) => (
