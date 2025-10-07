@@ -9,8 +9,7 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage",
-    "test:ui": "playwright test"
+  "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "axios": "^1.7.2",
@@ -29,7 +28,6 @@
     "@testing-library/jest-dom": "6.6.3",
     "@testing-library/react": "16.1.0",
     "@testing-library/user-event": "14.5.2",
-  "@playwright/test": "^1.48.2",
     "@types/node": "24.3.1",
     "@types/react": "19.1.12",
     "@types/react-dom": "19.1.9",
