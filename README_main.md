@@ -112,7 +112,7 @@ This branch is used **for production deployment**.
 
 ---
 
-> 📜 License
+> 📜 License: 
 > This project is developed for academic purposes under the SE3022 – Case Study Project module.
 
 
