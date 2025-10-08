@@ -118,12 +118,3 @@ This project is developed for academic purposes under the SE3022 – Case Study 
 
 
 ---
-
-👉 This README gives you:
-- Clear **overview** (good for grading).  
-- **Team member section** (credit distribution).  
-- **Setup instructions** (for examiners to run easily).  
-- **Workflow guide** (showing Agile + GitHub + JIRA).  
-- CI/CD mention (aligns with assignment goals:contentReference[oaicite:0]{index=0}).  
-
----
