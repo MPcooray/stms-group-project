@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { listTournaments } from "../services/tournamentService.js";
 import { getLeaderboard } from "../services/leaderboardService.js";
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import autoTable from 'jspdf-autotable';
+// html2canvas is no longer required for text-based PDFs but keep it in deps for other uses
 
 export default function PublicTournamentLeaderboard() {
   const { tournamentId } = useParams();
@@ -135,59 +136,40 @@ export default function PublicTournamentLeaderboard() {
               {/* Export button */}
               <button
                 className="btn outline"
-                onClick={async () => {
+                onClick={() => {
                   try {
-                    const container = document.querySelector('.leaderboard-content');
-                    if (!container) return alert('Leaderboard not visible to export.');
-
-                    // Temporarily force white background for cleaner PDF
-                    const prevBg = container.style.backgroundColor;
-                    container.style.backgroundColor = '#ffffff';
-
-                    // Capture with higher scale for better quality
-                    const scale = 2;
-                    const canvas = await html2canvas(container, { scale, useCORS: true });
-                    const imgData = canvas.toDataURL('image/png');
-
                     const pdf = new jsPDF('p', 'mm', 'a4');
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const pdfHeight = pdf.internal.pageSize.getHeight();
+                    const title = `${tournament?.name || 'Leaderboard'} - Leaderboard`;
+                    pdf.setFontSize(14);
+                    pdf.text(title, 14, 16);
 
-                    // Determine canvas pixel dimensions that correspond to one PDF page
-                    // jsPDF uses 72 DPI by default for points; however internal units are mm here.
-                    // We calculate the ratio of canvas px to PDF mm for width and use that to get page height in px.
-                    const pxPerMm = canvas.width / pdfWidth; // pixels per mm of PDF width
-                    const pageHeightPx = Math.floor(pdfHeight * pxPerMm);
-
-                    // If content fits single page, add directly
-                    if (canvas.height <= pageHeightPx) {
-                      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, (canvas.height / pxPerMm));
+                    if (activeView === 'players') {
+                      const head = [['Rank', 'Player', 'University', 'Total Points']];
+                      const body = leaderboard.players.map((p, idx) => [idx + 1, p.name || '-', p.university || '-', p.totalPoints ?? '-']);
+                      autoTable(pdf, {
+                        head,
+                        body,
+                        startY: 22,
+                        styles: { fontSize: 10 },
+                        headStyles: { fillColor: [30, 30, 30], textColor: 255 },
+                        alternateRowStyles: { fillColor: [245, 245, 245] },
+                        margin: { left: 14, right: 14 }
+                      });
                     } else {
-                      // Slice the canvas vertically into page-sized chunks
-                      let remainingHeight = canvas.height;
-                      let position = 0;
-                      while (remainingHeight > 0) {
-                        const pageCanvas = document.createElement('canvas');
-                        pageCanvas.width = canvas.width;
-                        pageCanvas.height = Math.min(pageHeightPx, remainingHeight);
-                        const ctx = pageCanvas.getContext('2d');
-                        ctx.fillStyle = '#ffffff';
-                        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-                        ctx.drawImage(canvas, 0, position, canvas.width, pageCanvas.height, 0, 0, pageCanvas.width, pageCanvas.height);
-
-                        const pageData = pageCanvas.toDataURL('image/png');
-                        const pageScaledHeightMm = pageCanvas.height / pxPerMm;
-
-                        if (position > 0) pdf.addPage();
-                        pdf.addImage(pageData, 'PNG', 0, 0, pdfWidth, pageScaledHeightMm);
-
-                        remainingHeight -= pageCanvas.height;
-                        position += pageCanvas.height;
-                      }
+                      const head = [['Rank', 'University', 'Total Points']];
+                      const body = leaderboard.universities.map((u, idx) => [idx + 1, u.name || '-', u.totalPoints ?? '-']);
+                      autoTable(pdf, {
+                        head,
+                        body,
+                        startY: 22,
+                        styles: { fontSize: 10 },
+                        headStyles: { fillColor: [30, 30, 30], textColor: 255 },
+                        alternateRowStyles: { fillColor: [245, 245, 245] },
+                        margin: { left: 14, right: 14 }
+                      });
                     }
 
                     pdf.save(`${(tournament && tournament.name) ? tournament.name.replace(/[^a-z0-9-_ ]/gi,'') : 'leaderboard'}-leaderboard.pdf`);
-                    container.style.backgroundColor = prevBg;
                   } catch (err) {
                     console.error('Export to PDF failed', err);
                     alert('Failed to export PDF. See console for details.');

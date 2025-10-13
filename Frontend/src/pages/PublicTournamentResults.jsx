@@ -4,7 +4,8 @@ import { listTournaments } from "../services/tournamentService.js";
 import { listEventsByTournament } from "../services/eventService.js";
 import { getEventResults } from "../services/resultsService.js";
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import autoTable from 'jspdf-autotable';
+// html2canvas no longer required for text-based exports but left in deps for other features
 
 export default function PublicTournamentResults() {
   const { tournamentId } = useParams();
@@ -153,52 +154,50 @@ export default function PublicTournamentResults() {
               </Link>
               <button
                 className="btn outline"
-                onClick={async () => {
+                onClick={() => {
                   try {
-                    const container = document.querySelector('.results-content');
-                    if (!container) return alert('Results not visible to export.');
-
-                    const prevBg = container.style.backgroundColor;
-                    container.style.backgroundColor = '#ffffff';
-
-                    const scale = 2;
-                    const canvas = await html2canvas(container, { scale, useCORS: true });
-                    const imgData = canvas.toDataURL('image/png');
-
                     const pdf = new jsPDF('p', 'mm', 'a4');
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const pdfHeight = pdf.internal.pageSize.getHeight();
+                    const title = `${tournament?.name || 'Results'} - Event Results`;
+                    pdf.setFontSize(14);
+                    pdf.text(title, 14, 16);
+                    let cursorY = 22;
 
-                    const pxPerMm = canvas.width / pdfWidth;
-                    const pageHeightPx = Math.floor(pdfHeight * pxPerMm);
+                    events.forEach((event, evIdx) => {
+                      const eventResults = results[event.id] || [];
 
-                    if (canvas.height <= pageHeightPx) {
-                      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, (canvas.height / pxPerMm));
-                    } else {
-                      let remainingHeight = canvas.height;
-                      let position = 0;
-                      while (remainingHeight > 0) {
-                        const pageCanvas = document.createElement('canvas');
-                        pageCanvas.width = canvas.width;
-                        pageCanvas.height = Math.min(pageHeightPx, remainingHeight);
-                        const ctx = pageCanvas.getContext('2d');
-                        ctx.fillStyle = '#ffffff';
-                        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-                        ctx.drawImage(canvas, 0, position, canvas.width, pageCanvas.height, 0, 0, pageCanvas.width, pageCanvas.height);
+                      // add event title
+                      pdf.setFontSize(12);
+                      pdf.text(`${event.name}`, 14, cursorY);
+                      cursorY += 6;
 
-                        const pageData = pageCanvas.toDataURL('image/png');
-                        const pageScaledHeightMm = pageCanvas.height / pxPerMm;
+                      if (eventResults.length > 0) {
+                        const head = [['Rank', 'Player', 'University', 'Time', 'Points']];
+                        const body = eventResults.map((r, idx) => [idx + 1, r.playerName || '-', r.universityName || '-', formatTiming(r.timeMs), r.points ?? '-']);
 
-                        if (position > 0) pdf.addPage();
-                        pdf.addImage(pageData, 'PNG', 0, 0, pdfWidth, pageScaledHeightMm);
+                        autoTable(pdf, {
+                          head,
+                          body,
+                          startY: cursorY,
+                          styles: { fontSize: 9 },
+                          headStyles: { fillColor: [30, 30, 30], textColor: 255 },
+                          margin: { left: 14, right: 14 }
+                        });
 
-                        remainingHeight -= pageCanvas.height;
-                        position += pageCanvas.height;
+                        cursorY = pdf.lastAutoTable ? pdf.lastAutoTable.finalY + 8 : cursorY + 8;
+                      } else {
+                        pdf.setFontSize(10);
+                        pdf.text('No results available for this event yet.', 14, cursorY);
+                        cursorY += 8;
                       }
-                    }
+
+                      // If next event would overflow, add page
+                      if (evIdx < events.length - 1 && cursorY > (pdf.internal.pageSize.getHeight() - 30)) {
+                        pdf.addPage();
+                        cursorY = 16;
+                      }
+                    });
 
                     pdf.save(`${(tournament && tournament.name) ? tournament.name.replace(/[^a-z0-9-_ ]/gi,'') : 'results'}-results.pdf`);
-                    container.style.backgroundColor = prevBg;
                   } catch (err) {
                     console.error('Export to PDF failed', err);
                     alert('Failed to export PDF. See console for details.');
