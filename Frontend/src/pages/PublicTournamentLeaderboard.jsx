@@ -140,21 +140,53 @@ export default function PublicTournamentLeaderboard() {
                     const container = document.querySelector('.leaderboard-content');
                     if (!container) return alert('Leaderboard not visible to export.');
 
-                    // use a white background for capture
+                    // Temporarily force white background for cleaner PDF
                     const prevBg = container.style.backgroundColor;
                     container.style.backgroundColor = '#ffffff';
 
-                    const canvas = await html2canvas(container, { scale: 2, useCORS: true });
+                    // Capture with higher scale for better quality
+                    const scale = 2;
+                    const canvas = await html2canvas(container, { scale, useCORS: true });
                     const imgData = canvas.toDataURL('image/png');
+
                     const pdf = new jsPDF('p', 'mm', 'a4');
-
-                    // Calculate dimensions to fit A4 while preserving aspect ratio
                     const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                    const pdfHeight = pdf.internal.pageSize.getHeight();
 
-                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-                    pdf.save(`${tournament.name || 'leaderboard'}-leaderboard.pdf`);
+                    // Determine canvas pixel dimensions that correspond to one PDF page
+                    // jsPDF uses 72 DPI by default for points; however internal units are mm here.
+                    // We calculate the ratio of canvas px to PDF mm for width and use that to get page height in px.
+                    const pxPerMm = canvas.width / pdfWidth; // pixels per mm of PDF width
+                    const pageHeightPx = Math.floor(pdfHeight * pxPerMm);
 
+                    // If content fits single page, add directly
+                    if (canvas.height <= pageHeightPx) {
+                      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, (canvas.height / pxPerMm));
+                    } else {
+                      // Slice the canvas vertically into page-sized chunks
+                      let remainingHeight = canvas.height;
+                      let position = 0;
+                      while (remainingHeight > 0) {
+                        const pageCanvas = document.createElement('canvas');
+                        pageCanvas.width = canvas.width;
+                        pageCanvas.height = Math.min(pageHeightPx, remainingHeight);
+                        const ctx = pageCanvas.getContext('2d');
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+                        ctx.drawImage(canvas, 0, position, canvas.width, pageCanvas.height, 0, 0, pageCanvas.width, pageCanvas.height);
+
+                        const pageData = pageCanvas.toDataURL('image/png');
+                        const pageScaledHeightMm = pageCanvas.height / pxPerMm;
+
+                        if (position > 0) pdf.addPage();
+                        pdf.addImage(pageData, 'PNG', 0, 0, pdfWidth, pageScaledHeightMm);
+
+                        remainingHeight -= pageCanvas.height;
+                        position += pageCanvas.height;
+                      }
+                    }
+
+                    pdf.save(`${(tournament && tournament.name) ? tournament.name.replace(/[^a-z0-9-_ ]/gi,'') : 'leaderboard'}-leaderboard.pdf`);
                     container.style.backgroundColor = prevBg;
                   } catch (err) {
                     console.error('Export to PDF failed', err);
