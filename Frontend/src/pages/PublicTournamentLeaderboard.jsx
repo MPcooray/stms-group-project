@@ -2,6 +2,8 @@ import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { listTournaments } from "../services/tournamentService.js";
 import { getLeaderboard } from "../services/leaderboardService.js";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 export default function PublicTournamentLeaderboard() {
   const { tournamentId } = useParams();
@@ -130,6 +132,38 @@ export default function PublicTournamentLeaderboard() {
               >
                 View Results
               </Link>
+              {/* Export button */}
+              <button
+                className="btn outline"
+                onClick={async () => {
+                  try {
+                    const container = document.querySelector('.leaderboard-content');
+                    if (!container) return alert('Leaderboard not visible to export.');
+
+                    // use a white background for capture
+                    const prevBg = container.style.backgroundColor;
+                    container.style.backgroundColor = '#ffffff';
+
+                    const canvas = await html2canvas(container, { scale: 2, useCORS: true });
+                    const imgData = canvas.toDataURL('image/png');
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+
+                    // Calculate dimensions to fit A4 while preserving aspect ratio
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                    pdf.save(`${tournament.name || 'leaderboard'}-leaderboard.pdf`);
+
+                    container.style.backgroundColor = prevBg;
+                  } catch (err) {
+                    console.error('Export to PDF failed', err);
+                    alert('Failed to export PDF. See console for details.');
+                  }
+                }}
+              >
+                📄 Export to PDF
+              </button>
             </div>
           </div>
 
