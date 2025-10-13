@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { listTournaments } from "../services/tournamentService.js";
 import { listEventsByTournament } from "../services/eventService.js";
 import { getEventResults } from "../services/resultsService.js";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 export default function PublicTournamentResults() {
   const { tournamentId } = useParams();
@@ -149,6 +151,62 @@ export default function PublicTournamentResults() {
               >
                 View Leaderboard
               </Link>
+              <button
+                className="btn outline"
+                onClick={async () => {
+                  try {
+                    const container = document.querySelector('.results-content');
+                    if (!container) return alert('Results not visible to export.');
+
+                    const prevBg = container.style.backgroundColor;
+                    container.style.backgroundColor = '#ffffff';
+
+                    const scale = 2;
+                    const canvas = await html2canvas(container, { scale, useCORS: true });
+                    const imgData = canvas.toDataURL('image/png');
+
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = pdf.internal.pageSize.getHeight();
+
+                    const pxPerMm = canvas.width / pdfWidth;
+                    const pageHeightPx = Math.floor(pdfHeight * pxPerMm);
+
+                    if (canvas.height <= pageHeightPx) {
+                      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, (canvas.height / pxPerMm));
+                    } else {
+                      let remainingHeight = canvas.height;
+                      let position = 0;
+                      while (remainingHeight > 0) {
+                        const pageCanvas = document.createElement('canvas');
+                        pageCanvas.width = canvas.width;
+                        pageCanvas.height = Math.min(pageHeightPx, remainingHeight);
+                        const ctx = pageCanvas.getContext('2d');
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+                        ctx.drawImage(canvas, 0, position, canvas.width, pageCanvas.height, 0, 0, pageCanvas.width, pageCanvas.height);
+
+                        const pageData = pageCanvas.toDataURL('image/png');
+                        const pageScaledHeightMm = pageCanvas.height / pxPerMm;
+
+                        if (position > 0) pdf.addPage();
+                        pdf.addImage(pageData, 'PNG', 0, 0, pdfWidth, pageScaledHeightMm);
+
+                        remainingHeight -= pageCanvas.height;
+                        position += pageCanvas.height;
+                      }
+                    }
+
+                    pdf.save(`${(tournament && tournament.name) ? tournament.name.replace(/[^a-z0-9-_ ]/gi,'') : 'results'}-results.pdf`);
+                    container.style.backgroundColor = prevBg;
+                  } catch (err) {
+                    console.error('Export to PDF failed', err);
+                    alert('Failed to export PDF. See console for details.');
+                  }
+                }}
+              >
+                📄 Export to PDF
+              </button>
             </div>
           </div>
 
