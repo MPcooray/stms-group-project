@@ -4,7 +4,6 @@ import { listTournaments } from "../services/tournamentService.js";
 import { getLeaderboard } from "../services/leaderboardService.js";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-// html2canvas is no longer required for text-based PDFs but keep it in deps for other uses
 
 export default function PublicTournamentLeaderboard() {
   const { tournamentId } = useParams();

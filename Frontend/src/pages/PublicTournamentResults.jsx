@@ -5,7 +5,6 @@ import { listEventsByTournament } from "../services/eventService.js";
 import { getEventResults } from "../services/resultsService.js";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-// html2canvas no longer required for text-based exports but left in deps for other features
 
 export default function PublicTournamentResults() {
   const { tournamentId } = useParams();
