@@ -129,23 +129,41 @@ namespace STMS.Api.Controllers
                 .Include(p => p.University)
                 .ToListAsync();
 
-            var results = timings.Select((t, idx) =>
+            // We need to assign ranks only to timings with TimeMs > 0. Timings with TimeMs <= 0
+            // should remain in the returned list but have a null rank and zero points.
+            // Place valid timings (TimeMs > 0) first ordered ascending by time,
+            // then place timings with TimeMs <= 0 at the end so they never appear first.
+            var ordered = timings
+                .OrderBy(t => t.TimeMs <= 0) // false (valid) come before true (invalid)
+                .ThenBy(t => t.TimeMs)
+                .ToList();
+            var rankedList = new List<object>();
+            int currentRank = 0;
+            foreach (var t in ordered)
             {
                 var player = players.FirstOrDefault(p => p.Id == t.PlayerId);
-                int rank = idx + 1;
-                int points = rank switch
+                int? rank = null;
+                int points = 0;
+                if (t.TimeMs > 0)
                 {
-                    1 => 10,
-                    2 => 8,
-                    3 => 7,
-                    4 => 5,
-                    5 => 4,
-                    6 => 3,
-                    7 => 2,
-                    8 => 1,
-                    _ => 0
-                };
-                return new
+                    // only increment rank for valid timings
+                    currentRank += 1;
+                    rank = currentRank;
+                    points = rank switch
+                    {
+                        1 => 10,
+                        2 => 8,
+                        3 => 7,
+                        4 => 5,
+                        5 => 4,
+                        6 => 3,
+                        7 => 2,
+                        8 => 1,
+                        _ => 0
+                    };
+                }
+
+                rankedList.Add(new
                 {
                     playerId = t.PlayerId,
                     playerName = player?.Name ?? "",
@@ -153,8 +171,10 @@ namespace STMS.Api.Controllers
                     timeMs = t.TimeMs,
                     rank,
                     points
-                };
-            }).ToList();
+                });
+            }
+
+            var results = rankedList;
 
             return Ok(results);
         }
