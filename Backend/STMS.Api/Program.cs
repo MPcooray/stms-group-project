@@ -68,11 +68,33 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
-// Seed events for development
+// Apply migrations and seed events (non-fatal if DB not ready)
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<StmsDbContext>();
-    STMS.Api.Data.SeedEvents.SeedTournamentEvents(db);
+    try
+    {
+        db.Database.Migrate();
+        // Seed default admin if missing (reads from configuration Admin:Email and Admin:Password)
+        var cfg = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+        var adminEmail = cfg["Admin:Email"] ?? "admin@stms.com";
+        var adminPassword = cfg["Admin:Password"] ?? "Admin#123";
+        if (!string.IsNullOrWhiteSpace(adminEmail))
+        {
+            if (!await db.Admins.AnyAsync(a => a.Email == adminEmail))
+            {
+                var hash = BCrypt.Net.BCrypt.HashPassword(adminPassword);
+                db.Admins.Add(new STMS.Api.Models.Admin { Email = adminEmail, PasswordHash = hash });
+                await db.SaveChangesAsync();
+            }
+        }
+        STMS.Api.Data.SeedEvents.SeedTournamentEvents(db);
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogWarning(ex, "Database migration/seeding failed on startup. Continuing to run.");
+    }
 }
 
 app.MapHealthChecks("/health/db");
