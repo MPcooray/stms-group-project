@@ -1,119 +1,131 @@
-# 🏊 Swimming Tournament Management System (STMS)
 
-## 📌 Project Overview
-The **Swimming Tournament Management System (STMS)** is a web-based solution for managing inter-university swimming tournaments.  
-Administrators can manage tournaments, events, players and universities, while the public can view real-time results and leaderboards.
+# 🏊 Swimming Tournament Management System (STMS) 
 
-This project is developed as part of **SE3022 – Case Study Project (Year 3, Semester 1)** at **SLIIT**.
+## 📌 Project Overview 
+The **STMS** platform streamlines inter-university swimming tournament management with admin tools and public visibility for results and leaderboards.   
+This branch focuses on **continuous development**, integration testing, and pre-deployment validation. 
 
----
-
-## 👥 Team Members
-- **M.P. Cooray** – IT23194830  
-- **P.W.K.W. Rupasinghe** – IT23283312  
-- **N.D. Gamage** – IT23161788  
-- **W.M. Chamudini** – IT23292154  
+Developed as part of **SE3022 – Case Study Project (Year 3, Semester 1)** at **SLIIT**. 
 
 ---
 
-## ⚙️ Tech Stack
-- **Frontend:** React.js (Vite)
-- **Backend:** ASP.NET Core Web API + ADO.NET
-- **Database:** Azure SQL
-- **Containerization:** Docker + GitHub Container Registry (GHCR)
-- **Deployment:** Azure Web App (Containerized)
-- **Version Control:** GitHub
-- **Testing Tools:** Selenium, JMeter, xUnit
+## 👥 Team Members 
+- **M.P. Cooray** – IT23194830   
+- **P.W.K.W. Rupasinghe** – IT23283312   
+- **N.D. Gamage** – IT23161788   
+- **W.M. Chamudini** – IT23292154   
 
----
+--- 
 
-## 🚀 Features
-- Secure Admin login & authentication  
-- Tournament creation & management  
-- University & Player registration  
-- Event timing & automatic point allocation  
-- Real-time leaderboard (by event, player, university)  
-- Public portal for results (no login required)  
-- Export leaderboard as PDF  
-- CI/CD integration with GitHub Actions and Azure  
+## ⚙️ Tech Stack 
+- **Frontend:** React.js   
+- **Backend:** ASP.NET Web API + ADO.NET   
+- **Database:** MySQL   
+- **Version Control:** GitHub   
+- **Deployment:** Azure App Service / Docker   
+- **Testing Tools:** Selenium, JMeter, Unit Test  
+- **CI:** GitHub Actions (`ci.yml`) 
 
----
+--- 
 
-## 📂 Project Structure
+## 🚀 System Features 
+- Secure Admin login & authentication   
+- Tournament creation & management   
+- University & Player registration   
+- Event timing & automatic point allocation   
+- Real-time leaderboard (by event, player, university)   
+- Public portal for results (no login required)   
+- Export leaderboard as PDF   
+
+--- 
+
+## 🚀 Development Features 
+- Event and leaderboard modules under active iteration   
+- CI verification for backend and frontend   
+- Manual merge control before production deployment   
+
+--- 
+## 📂 Project Structure 
+``` 
+stms-group-project/ 
+├── frontend/ # React.js code 
+├── backend/ # ASP.NET Web API code 
+├── database/ # SQL scripts for schema & seed data 
+├── tests/ # Unit & integration tests 
+├── docs/ # SRS, diagrams, reports  
+├── .github/ # CI/CD workflows (GitHub Actions) 
+└── README.md # Project documentation 
+
+``` 
+--- 
+
+## 🛠️ Setup Instructions 
+
+### 1. Clone Repository 
+```bash
+git clone https://github.com/<org-or-username>/stms-group-project.git 
+cd stms-group-project 
 ```
-stms-group-project/
-├── frontend/      # React.js code
-├── backend/       # ASP.NET Core API
-├── database/      # SQL schema and seed data
-├── tests/         # Unit & integration tests
-├── docs/          # Reports, diagrams, and SRS
-├── .github/       # CI/CD workflow files
-└── README.md
+
+### 2. Backend Setup 
+```bash
+cd Backend/STMS.Api 
+dotnet restore 
+dotnet run 
+```
+
+### 3. Frontend Setup 
+```bash
+cd Frontend 
+npm install 
+npm run dev 
 ```
 
 ---
 
-## ⚙️ Local Development
+## 🔄 Git Workflow (Development Branch – CI Focus) 
+This branch is for **active development and validation**. 
 
-### Backend (ASP.NET Core)
-- Default URL: http://localhost:5287 (see `Backend/STMS.Api/Properties/launchSettings.json`)
-- Run:
-  ```bash
-  cd Backend/STMS.Api
-  dotnet run
-  ```
+- Code is built and tested via GitHub Actions (`ci.yml`) 
+- CI verifies: 
+  - Backend builds and tests 
+  - Frontend compiles successfully 
+  - Unit tests run without errors   
 
-### Frontend (React + Vite)
-- Dev server: http://localhost:3000  
-- Setup:
-  ```bash
-  cd Frontend
-  cp .env.example .env.local
-  npm install
-  npm run dev
-  ```
-
-### CORS/Proxy
-- Backend allows CORS for `localhost:3000` and `localhost:5173`.
-- Vite proxies `/api` and `/auth` to the backend automatically.
+### CI Checks 
+| Check | Tool | Description | 
+|--------|------|-------------| 
+| Backend Build | .NET CLI | Ensures API builds correctly | 
+| Backend Tests | xUnit | Validates API logic | 
+| Frontend Build | Vite | Ensures no build errors | 
+| Frontend Tests | Jest/Vitest | Checks React components | 
 
 ---
 
-## 🔄 Git Workflow (Main Branch – CI/CD Focus)
-This branch is used **for production deployment**.
+## 🔁 Branch Integration 
+- Developers push to `development` 
+- After successful CI checks, merge into `main` 
+- Switch default branch to `main` for deployment 
+ 
+---
 
-- The `main` branch is **containerized and deployed** to **Azure Web App**.
-- Two GitHub Actions workflows handle deployment:
-  - **`build-container.yml`** -> Builds Docker image and pushes to GHCR  
-  - **`deploy-to-azure.yml`** -> Deploys the latest GHCR image to Azure  
-
-### Deployment Process
-1. Merge the latest tested code from `development` into `main`
-2. CI/CD automatically:
-   - Builds container  
-   - Pushes to GHCR  
-   - Deploys to Azure Web App  
-
-> ⚠️ Switch the default branch to **main** before deployment.
+## 📦 CI Workflow Summary 
+| Purpose | Workflow | Trigger | Output | 
+|----------|-----------|----------|---------| 
+| Development CI | `ci.yml` | Push or PR to `development` | Verifies build + tests | 
 
 ---
 
-## 🧪 Testing
-- **Backend:** `dotnet test`
-- **Frontend:** `npm test`
+## 🧪 Manual Testing 
+```bash
+# Backend 
+dotnet test 
+
+# Frontend 
+npm test 
+```
 
 ---
 
-## 📦 CI/CD Overview
-| Purpose | Workflow | Trigger | Output |
-|----------|-----------|----------|---------|
-| Container Build | `build-container.yml` | Push to `main` | Docker image to GHCR |
-| Azure Deployment | `deploy-to-azure.yml` | Push to `main` | Deployed container on Azure |
-
----
-
-> 📜 License: 
-> This project is developed for academic purposes under the SE3022 – Case Study Project module.
-
-
----
+## 📜 License 
+This project is developed for academic purposes under the SE3022 – Case Study Project module. 

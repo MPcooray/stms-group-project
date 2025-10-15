@@ -2,6 +2,8 @@ import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { listTournaments } from "../services/tournamentService.js";
 import { getLeaderboard } from "../services/leaderboardService.js";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export default function PublicTournamentLeaderboard() {
   const { tournamentId } = useParams();
@@ -130,6 +132,51 @@ export default function PublicTournamentLeaderboard() {
               >
                 View Results
               </Link>
+              {/* Export button */}
+              <button
+                className="btn outline"
+                onClick={() => {
+                  try {
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const title = `${tournament?.name || 'Leaderboard'} - Leaderboard`;
+                    pdf.setFontSize(14);
+                    pdf.text(title, 14, 16);
+
+                    if (activeView === 'players') {
+                      const head = [['Rank', 'Player', 'University', 'Total Points']];
+                      const body = leaderboard.players.map((p, idx) => [idx + 1, p.name || '-', p.university || '-', p.totalPoints ?? '-']);
+                      autoTable(pdf, {
+                        head,
+                        body,
+                        startY: 22,
+                        styles: { fontSize: 10 },
+                        headStyles: { fillColor: [30, 30, 30], textColor: 255 },
+                        alternateRowStyles: { fillColor: [245, 245, 245] },
+                        margin: { left: 14, right: 14 }
+                      });
+                    } else {
+                      const head = [['Rank', 'University', 'Total Points']];
+                      const body = leaderboard.universities.map((u, idx) => [idx + 1, u.name || '-', u.totalPoints ?? '-']);
+                      autoTable(pdf, {
+                        head,
+                        body,
+                        startY: 22,
+                        styles: { fontSize: 10 },
+                        headStyles: { fillColor: [30, 30, 30], textColor: 255 },
+                        alternateRowStyles: { fillColor: [245, 245, 245] },
+                        margin: { left: 14, right: 14 }
+                      });
+                    }
+
+                    pdf.save(`${(tournament && tournament.name) ? tournament.name.replace(/[^a-z0-9-_ ]/gi,'') : 'leaderboard'}-leaderboard.pdf`);
+                  } catch (err) {
+                    console.error('Export to PDF failed', err);
+                    alert('Failed to export PDF. See console for details.');
+                  }
+                }}
+              >
+                📄 Export to PDF
+              </button>
             </div>
           </div>
 
