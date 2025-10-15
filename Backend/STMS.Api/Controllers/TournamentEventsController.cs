@@ -129,12 +129,9 @@ namespace STMS.Api.Controllers
                 .Include(p => p.University)
                 .ToListAsync();
 
-            // We need to assign ranks only to timings with TimeMs > 0. Timings with TimeMs <= 0
-            // should remain in the returned list but have a null rank and zero points.
-            // Place valid timings (TimeMs > 0) first ordered ascending by time,
-            // then place timings with TimeMs <= 0 at the end so they never appear first.
+            // Rank players, handling invalid timings (<= 0) by placing them at the end
             var ordered = timings
-                .OrderBy(t => t.TimeMs <= 0) // false (valid) come before true (invalid)
+                .OrderBy(t => t.TimeMs <= 0) 
                 .ThenBy(t => t.TimeMs)
                 .ToList();
             var rankedList = new List<object>();
