@@ -1,7 +1,0 @@
-bin
-obj
-*.user
-*.suo
-*.userprefs
-.vs/
-**/Migrations_mysql_backup/**
