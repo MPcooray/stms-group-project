@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { listTournaments } from "../services/tournamentService.js";
 import { listEventsByTournament } from "../services/eventService.js";
 import { getEventResults } from "../services/resultsService.js";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export default function PublicTournamentResults() {
   const { tournamentId } = useParams();
@@ -149,6 +151,60 @@ export default function PublicTournamentResults() {
               >
                 View Leaderboard
               </Link>
+              <button
+                className="btn outline"
+                onClick={() => {
+                  try {
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const title = `${tournament?.name || 'Results'} - Event Results`;
+                    pdf.setFontSize(14);
+                    pdf.text(title, 14, 16);
+                    let cursorY = 22;
+
+                    events.forEach((event, evIdx) => {
+                      const eventResults = results[event.id] || [];
+
+                      // add event title
+                      pdf.setFontSize(12);
+                      pdf.text(`${event.name}`, 14, cursorY);
+                      cursorY += 6;
+
+                      if (eventResults.length > 0) {
+                        const head = [['Rank', 'Player', 'University', 'Time', 'Points']];
+                        const body = eventResults.map((r, idx) => [idx + 1, r.playerName || '-', r.universityName || '-', formatTiming(r.timeMs), r.points ?? '-']);
+
+                        autoTable(pdf, {
+                          head,
+                          body,
+                          startY: cursorY,
+                          styles: { fontSize: 9 },
+                          headStyles: { fillColor: [30, 30, 30], textColor: 255 },
+                          margin: { left: 14, right: 14 }
+                        });
+
+                        cursorY = pdf.lastAutoTable ? pdf.lastAutoTable.finalY + 8 : cursorY + 8;
+                      } else {
+                        pdf.setFontSize(10);
+                        pdf.text('No results available for this event yet.', 14, cursorY);
+                        cursorY += 8;
+                      }
+
+                      // If next event would overflow, add page
+                      if (evIdx < events.length - 1 && cursorY > (pdf.internal.pageSize.getHeight() - 30)) {
+                        pdf.addPage();
+                        cursorY = 16;
+                      }
+                    });
+
+                    pdf.save(`${(tournament && tournament.name) ? tournament.name.replace(/[^a-z0-9-_ ]/gi,'') : 'results'}-results.pdf`);
+                  } catch (err) {
+                    console.error('Export to PDF failed', err);
+                    alert('Failed to export PDF. See console for details.');
+                  }
+                }}
+              >
+                📄 Export to PDF
+              </button>
             </div>
           </div>
 
