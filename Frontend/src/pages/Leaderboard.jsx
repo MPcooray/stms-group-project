@@ -109,9 +109,9 @@ export default function Leaderboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {playerLeaderboard.map((p, idx) => (
+                      {playerLeaderboard.map((p) => (
                         <tr key={p.id}>
-                          <td>{idx + 1}</td>
+                          <td>{p.rank}</td>
                           <td>{p.name}</td>
                           <td>{p.university}</td>
                           <td>{p.totalPoints}</td>
@@ -136,9 +136,9 @@ export default function Leaderboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {universityLeaderboard.map((u, idx) => (
+                      {universityLeaderboard.map((u) => (
                         <tr key={u.id}>
-                          <td>{idx + 1}</td>
+                          <td>{u.rank}</td>
                           <td>{u.name}</td>
                           <td>{u.totalPoints}</td>
                         </tr>
