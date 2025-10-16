@@ -250,7 +250,9 @@ export default function PublicTournamentResults() {
                                 <tr key={`${result.playerId}-${result.eventId}`} className={getRankClass(result.rank)}>
                                   <td className="rank-cell">
                                     <span className="rank">{result.rank || '-'}</span>
-                                    {result.rank && result.rank <= 3 && <span className="medal">🏅</span>}
+                                    {result.rank && result.rank == 1 && <span className="medal">🥇</span>}
+                                    {result.rank && result.rank == 2 && <span className="medal">🥈</span>}
+                                    {result.rank && result.rank == 3 && <span className="medal">🥉</span>}
                                   </td>
                                   <td className="player-name">{result.playerName}</td>
                                   <td className="university">{result.universityName}</td>
