@@ -171,7 +171,7 @@ export default function PublicTournamentResults() {
 
                       if (eventResults.length > 0) {
                         const head = [['Rank', 'Player', 'University', 'Time', 'Points']];
-                        const body = eventResults.map((r, idx) => [idx + 1, r.playerName || '-', r.universityName || '-', formatTiming(r.timeMs), r.points ?? '-']);
+                        const body = eventResults.map((r) => [r.rank || '-', r.playerName || '-', r.universityName || '-', formatTiming(r.timeMs), r.points ?? '-']);
 
                         autoTable(pdf, {
                           head,
@@ -246,11 +246,11 @@ export default function PublicTournamentResults() {
                               </tr>
                             </thead>
                             <tbody>
-                              {results[event.id].map((result, index) => (
-                                <tr key={`${result.playerId}-${result.eventId}`} className={getRankClass(index + 1)}>
+                              {results[event.id].map((result) => (
+                                <tr key={`${result.playerId}-${result.eventId}`} className={getRankClass(result.rank)}>
                                   <td className="rank-cell">
-                                    <span className="rank">{index + 1}</span>
-                                    {index < 3 && <span className="medal">🏅</span>}
+                                    <span className="rank">{result.rank || '-'}</span>
+                                    {result.rank && result.rank <= 3 && <span className="medal">🏅</span>}
                                   </td>
                                   <td className="player-name">{result.playerName}</td>
                                   <td className="university">{result.universityName}</td>

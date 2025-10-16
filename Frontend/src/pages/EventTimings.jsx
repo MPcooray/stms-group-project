@@ -96,7 +96,6 @@ export default function EventTimings() {
     return timeA - timeB
   })
 
-  // Points by rank: 1st=10, 2nd=7, 3rd=5, 4th=3, 5th=1, others=0
   // Points by rank: 1st=10, 2nd=8, 3rd=7, 4th=5, 5th=4, 6th=3, 7th=2, 8th=1, others=0
   function getPoints(rank) {
     switch (rank) {
@@ -112,7 +111,39 @@ export default function EventTimings() {
     }
   }
 
-  let currentRank = 1;
+  // Calculate ranks with tie handling
+  const playersWithRanks = sortedPlayers.map((player, index) => {
+    let rank = "-";
+    let points = "-";
+    
+    if (player.timing !== null) {
+      // Find the rank considering ties
+      let currentRank = 1;
+      for (let i = 0; i < sortedPlayers.length; i++) {
+        if (sortedPlayers[i].timing === null) break;
+        
+        if (i === index) {
+          rank = currentRank;
+          points = getPoints(rank);
+          break;
+        }
+        
+        // Count how many players have the same timing as current position
+        let tieCount = 1;
+        while (i + tieCount < sortedPlayers.length && 
+               sortedPlayers[i].timing === sortedPlayers[i + tieCount].timing &&
+               sortedPlayers[i + tieCount].timing !== null) {
+          tieCount++;
+        }
+        
+        // Skip ahead and adjust rank
+        i += tieCount - 1;
+        currentRank += tieCount;
+      }
+    }
+    
+    return { ...player, rank, points };
+  });
 
   return (
     <DashboardLayout>
@@ -162,12 +193,10 @@ export default function EventTimings() {
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedPlayers.map((p) => {
-                    const rank = p.timing !== null ? currentRank++ : "-";
-                    const points = typeof rank === "number" ? getPoints(rank) : "-";
+                  {playersWithRanks.map((p) => {
                     return (
                       <tr key={p.id}>
-                        <td>{rank}</td>
+                        <td>{p.rank}</td>
                         <td>{p.name}</td>
                         <td>{p.university}</td>
                         <td>
@@ -180,7 +209,7 @@ export default function EventTimings() {
                             placeholder="Enter time"
                           />
                         </td>
-                        <td>{points}</td>
+                        <td>{p.points}</td>
                         <td>
                           <button className="btn danger" onClick={async () => {
                             try {
@@ -199,9 +228,9 @@ export default function EventTimings() {
                       </tr>
                     );
                   })}
-                  {sortedPlayers.length === 0 && (
+                  {playersWithRanks.length === 0 && (
                     <tr>
-                      <td colSpan="5" className="muted">
+                      <td colSpan="6" className="muted">
                         No players registered yet.
                       </td>
                     </tr>
