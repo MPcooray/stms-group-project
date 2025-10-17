@@ -144,7 +144,7 @@ export default function PublicTournamentLeaderboard() {
 
                     if (activeView === 'players') {
                       const head = [['Rank', 'Player', 'University', 'Total Points']];
-                      const body = leaderboard.players.map((p, idx) => [idx + 1, p.name || '-', p.university || '-', p.totalPoints ?? '-']);
+                      const body = leaderboard.players.map((p) => [p.rank || '-', p.name || '-', p.university || '-', p.totalPoints ?? '-']);
                       autoTable(pdf, {
                         head,
                         body,
@@ -156,7 +156,7 @@ export default function PublicTournamentLeaderboard() {
                       });
                     } else {
                       const head = [['Rank', 'University', 'Total Points']];
-                      const body = leaderboard.universities.map((u, idx) => [idx + 1, u.name || '-', u.totalPoints ?? '-']);
+                      const body = leaderboard.universities.map((u) => [u.rank || '-', u.name || '-', u.totalPoints ?? '-']);
                       autoTable(pdf, {
                         head,
                         body,
@@ -212,11 +212,11 @@ export default function PublicTournamentLeaderboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {leaderboard.players.map((player, index) => (
-                        <tr key={player.id} className={getRankClass(index + 1)}>
+                      {leaderboard.players.map((player) => (
+                        <tr key={player.id} className={getRankClass(player.rank)}>
                           <td className="rank-cell">
                             <span className="rank-display">
-                              {getRankIcon(index + 1)}
+                              {getRankIcon(player.rank)}
                             </span>
                           </td>
                           <td className="player-name">{player.name}</td>
@@ -250,11 +250,11 @@ export default function PublicTournamentLeaderboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {leaderboard.universities.map((university, index) => (
-                        <tr key={university.id} className={getRankClass(index + 1)}>
+                      {leaderboard.universities.map((university) => (
+                        <tr key={university.id} className={getRankClass(university.rank)}>
                           <td className="rank-cell">
                             <span className="rank-display">
-                              {getRankIcon(index + 1)}
+                              {getRankIcon(university.rank)}
                             </span>
                           </td>
                           <td className="university-name">{university.name}</td>

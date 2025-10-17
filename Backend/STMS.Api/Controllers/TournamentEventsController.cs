@@ -129,45 +129,75 @@ namespace STMS.Api.Controllers
                 .Include(p => p.University)
                 .ToListAsync();
 
-            // Rank players, handling invalid timings (<= 0) by placing them at the end
-            var ordered = timings
-                .OrderBy(t => t.TimeMs <= 0) 
-                .ThenBy(t => t.TimeMs)
-                .ToList();
+            // Rank players with tie handling, invalid timings (<= 0) placed at the end
+            var validTimings = timings.Where(t => t.TimeMs > 0).OrderBy(t => t.TimeMs).ToList();
+            var invalidTimings = timings.Where(t => t.TimeMs <= 0).ToList();
+            
             var rankedList = new List<object>();
-            int currentRank = 0;
-            foreach (var t in ordered)
+            
+            // Process valid timings with tie handling
+            int currentRank = 1;
+            for (int i = 0; i < validTimings.Count; i++)
+            {
+                int rank = currentRank;
+                
+                // Count how many players have the same time (tie group)
+                int tieCount = 1;
+                while (i + tieCount < validTimings.Count && 
+                       validTimings[i].TimeMs == validTimings[i + tieCount].TimeMs)
+                {
+                    tieCount++;
+                }
+                
+                // Get points for the current rank
+                int points = rank switch
+                {
+                    1 => 10,
+                    2 => 8,
+                    3 => 7,
+                    4 => 5,
+                    5 => 4,
+                    6 => 3,
+                    7 => 2,
+                    8 => 1,
+                    _ => 0
+                };
+                
+                // Add all tied players with the same rank and points
+                for (int j = 0; j < tieCount; j++)
+                {
+                    var t = validTimings[i + j];
+                    var player = players.FirstOrDefault(p => p.Id == t.PlayerId);
+                    rankedList.Add(new
+                    {
+                        playerId = t.PlayerId,
+                        playerName = player?.Name ?? "",
+                        universityName = player?.University?.Name ?? "",
+                        timeMs = t.TimeMs,
+                        rank = (int?)rank,
+                        points
+                    });
+                }
+                
+                // Skip ahead by the number of tied players
+                i += tieCount - 1;
+                
+                // Next rank skips the tied positions
+                currentRank += tieCount;
+            }
+            
+            // Add invalid timings at the end with no rank
+            foreach (var t in invalidTimings)
             {
                 var player = players.FirstOrDefault(p => p.Id == t.PlayerId);
-                int? rank = null;
-                int points = 0;
-                if (t.TimeMs > 0)
-                {
-                    // only increment rank for valid timings
-                    currentRank += 1;
-                    rank = currentRank;
-                    points = rank switch
-                    {
-                        1 => 10,
-                        2 => 8,
-                        3 => 7,
-                        4 => 5,
-                        5 => 4,
-                        6 => 3,
-                        7 => 2,
-                        8 => 1,
-                        _ => 0
-                    };
-                }
-
                 rankedList.Add(new
                 {
                     playerId = t.PlayerId,
                     playerName = player?.Name ?? "",
                     universityName = player?.University?.Name ?? "",
                     timeMs = t.TimeMs,
-                    rank,
-                    points
+                    rank = (int?)null,
+                    points = 0
                 });
             }
 
