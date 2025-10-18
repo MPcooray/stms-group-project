@@ -1,13 +1,8 @@
-import { useEffect, useState } from "react"
-import { useParams } from "react-router-dom"
+import { useEffect, useMemo, useState } from "react"
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom"
+import DashboardLayout from "../components/DashboardLayout.jsx"
 import { getLeaderboard } from "../services/leaderboardService.js"
 import { listTournaments } from "../services/tournamentService.js"
-import { Link } from "react-router-dom"
-import DashboardLayout from "../components/DashboardLayout.jsx"
-import { listEventsByTournament } from "../services/eventService.js"
-import { listPlayersByTournament } from "../services/playerService.js"
-import { listRegistrations } from "../services/tournamentEventRegistrationsService.js"
-import { getTiming } from "../services/timingService.js"
 
 // Same point system as EventTimings
 function getPoints(rank) {
@@ -26,15 +21,19 @@ function getPoints(rank) {
 
 export default function Leaderboard() {
   const { tournamentId } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [tournaments, setTournaments] = useState([]);
   const [status, setStatus] = useState("");
   const [playerLeaderboard, setPlayerLeaderboard] = useState([]);
   const [universityLeaderboard, setUniversityLeaderboard] = useState([]);
+  const genderFromUrl = useMemo(() => new URLSearchParams(location.search).get('gender') || 'All', [location.search]);
+  const [gender, setGender] = useState(genderFromUrl);
 
   useEffect(() => {
     if (tournamentId) {
       setStatus("");
-      getLeaderboard(tournamentId)
+      getLeaderboard(tournamentId, gender === 'All' ? undefined : gender)
         .then(data => {
           setPlayerLeaderboard(Array.isArray(data.players) ? data.players : []);
           setUniversityLeaderboard(Array.isArray(data.universities) ? data.universities : []);
@@ -46,7 +45,19 @@ export default function Leaderboard() {
         .then(data => setTournaments(Array.isArray(data) ? data : []))
         .catch(() => setStatus("Failed to load tournaments"));
     }
-  }, [tournamentId]);
+  }, [tournamentId, gender]);
+
+  // Keep URL query in sync when gender changes
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (gender && gender !== 'All') params.set('gender', gender);
+    else params.delete('gender');
+    const search = params.toString();
+    const newUrl = `${location.pathname}${search ? `?${search}` : ''}`;
+    if (newUrl !== `${location.pathname}${location.search}`) {
+      navigate(newUrl, { replace: true });
+    }
+  }, [gender]);
 
   return (
     <DashboardLayout>
@@ -95,6 +106,21 @@ export default function Leaderboard() {
           ) : (
             <>
               <h2 style={{ marginBottom: 24 }}>Leaderboard</h2>
+              <div style={{ marginBottom: 16, display: 'flex', gap: 8, alignItems: 'center' }}>
+                <span className="muted">Category:</span>
+                <div className="btn-group" role="group" aria-label="Gender filter">
+                  {['All','Male','Female'].map(opt => (
+                    <button
+                      key={opt}
+                      className={`btn ${gender === opt ? 'primary' : ''}`}
+                      onClick={() => setGender(opt)}
+                      aria-pressed={gender === opt}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
               {status && <div className="error">{status}</div>}
               <div style={{ display: "flex", gap: "48px", flexWrap: "wrap" }}>
                 <div style={{ flex: 1, minWidth: 320 }}>
