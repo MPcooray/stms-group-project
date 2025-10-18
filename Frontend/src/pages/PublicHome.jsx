@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { listTournaments } from "../services/tournamentService.js";
 
 export default function PublicHome() {
@@ -111,6 +111,12 @@ export default function PublicHome() {
 
       {/* Footer */}
       <footer className="public-footer">
+        {/* Animated waves background */}
+        <div className="waves" aria-hidden="true">
+          <div className="wave wave1"></div>
+          <div className="wave wave2"></div>
+          <div className="wave wave3"></div>
+        </div>
         <div className="container">
           <p>&copy; 2025 AquaChamps</p>
         </div>

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useNavigate, useLocation } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext.jsx"
 import { email as emailValidator, required } from "../utils/validators.js"
 
@@ -36,10 +36,11 @@ export default function Login() {
   }
 
   return (
-    <div className="container" style={{ maxWidth: 480, marginTop: 80 }}>
-      <div className="card">
+    <div className="login-page">
+      <div className="container login-container">
+        <div className="card login-card">
         <h2>Admin Login</h2>
-        <p className="muted">Sign in to manage STMS.</p>
+        <p className="muted">Dive in to manage AquaChamps</p>
         <div className="space"></div>
         <form onSubmit={handleSubmit}>
           <label>Email</label>
@@ -60,6 +61,7 @@ export default function Login() {
             {loading ? "Signing in…" : "Sign In"}
           </button>
         </form>
+        </div>
       </div>
     </div>
   )
