@@ -1,16 +1,20 @@
-import { Link, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { listTournaments } from "../services/tournamentService.js";
-import { getLeaderboard } from "../services/leaderboardService.js";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { getLeaderboard } from "../services/leaderboardService.js";
+import { listTournaments } from "../services/tournamentService.js";
 
 export default function PublicTournamentLeaderboard() {
   const { tournamentId } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [tournament, setTournament] = useState(null);
   const [leaderboard, setLeaderboard] = useState({ players: [], universities: [] });
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState('players');
+  const genderFromUrl = useMemo(() => new URLSearchParams(location.search).get('gender') || 'All', [location.search]);
+  const [gender, setGender] = useState(genderFromUrl);
 
   useEffect(() => {
     const loadData = async () => {
@@ -22,7 +26,7 @@ export default function PublicTournamentLeaderboard() {
 
         if (foundTournament) {
           // Load leaderboard data
-          const leaderboardData = await getLeaderboard(tournamentId);
+          const leaderboardData = await getLeaderboard(tournamentId, gender === 'All' ? undefined : gender);
           setLeaderboard(leaderboardData || { players: [], universities: [] });
         }
       } catch (error) {
@@ -36,7 +40,19 @@ export default function PublicTournamentLeaderboard() {
     if (tournamentId) {
       loadData();
     }
-  }, [tournamentId]);
+  }, [tournamentId, gender]);
+
+  // Keep URL query in sync when gender changes
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (gender && gender !== 'All') params.set('gender', gender);
+    else params.delete('gender');
+    const search = params.toString();
+    const newUrl = `${location.pathname}${search ? `?${search}` : ''}`;
+    if (newUrl !== `${location.pathname}${location.search}`) {
+      navigate(newUrl, { replace: true });
+    }
+  }, [gender]);
 
   const getRankClass = (rank) => {
     switch(rank) {
@@ -194,6 +210,13 @@ export default function PublicTournamentLeaderboard() {
             >
               🏫 University Rankings
             </button>
+          </div>
+
+          {/* Gender selector */}
+          <div className="view-toggle" style={{ marginTop: '1rem' }}>
+            <button className={`toggle-btn ${gender === 'All' ? 'active' : ''}`} onClick={() => setGender('All')}>All</button>
+            <button className={`toggle-btn ${gender === 'Male' ? 'active' : ''}`} onClick={() => setGender('Male')}>Male</button>
+            <button className={`toggle-btn ${gender === 'Female' ? 'active' : ''}`} onClick={() => setGender('Female')}>Female</button>
           </div>
 
           {/* Leaderboard content */}
