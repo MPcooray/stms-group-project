@@ -113,42 +113,66 @@ namespace STMS.Api.Controllers
 
         // GET /api/events/{eventId}/results
         [HttpGet("events/{eventId:int}/results")]
-        public async Task<ActionResult<IEnumerable<object>>> GetEventResults(int eventId)
+        public async Task<ActionResult<IEnumerable<object>>> GetEventResults(int eventId, [FromQuery] string? gender)
         {
             var eventExists = await _db.TournamentEvents.AsNoTracking().AnyAsync(e => e.Id == eventId);
             if (!eventExists) return NotFound(new { error = "Event not found" });
 
+            // Normalize gender filter
+            string? genderLower = null;
+            if (!string.IsNullOrWhiteSpace(gender))
+            {
+                var g = gender.Trim().ToLowerInvariant();
+                if (g == "male" || g == "m") genderLower = "male";
+                else if (g == "female" || g == "f") genderLower = "female";
+                else return BadRequest(new { error = "Invalid gender. Allowed values: male, female." });
+            }
+
             var timings = await _db.Timings
-                    .Where(t => t.EventId == eventId)
+                .Where(t => t.EventId == eventId)
                 .OrderBy(t => t.TimeMs)
                 .ToListAsync();
 
             var playerIds = timings.Select(t => t.PlayerId).Distinct().ToList();
-            var players = await _db.Players
-                .Where(p => playerIds.Contains(p.Id))
+            var playersQuery = _db.Players
+                .Where(p => playerIds.Contains(p.Id));
+            if (genderLower != null)
+            {
+                playersQuery = playersQuery.Where(p => p.Gender != null && p.Gender!.Trim().ToLower() == genderLower);
+            }
+            var players = await playersQuery
                 .Include(p => p.University)
                 .ToListAsync();
+
+            // If gender filter applied, limit timings to the filtered players
+            HashSet<int>? allowedPlayerIds = null;
+            if (genderLower != null)
+            {
+                allowedPlayerIds = players.Select(p => p.Id).ToHashSet();
+                timings = timings.Where(t => allowedPlayerIds.Contains(t.PlayerId)).ToList();
+                playerIds = timings.Select(t => t.PlayerId).Distinct().ToList();
+            }
 
             // Rank players with tie handling, invalid timings (<= 0) placed at the end
             var validTimings = timings.Where(t => t.TimeMs > 0).OrderBy(t => t.TimeMs).ToList();
             var invalidTimings = timings.Where(t => t.TimeMs <= 0).ToList();
-            
+
             var rankedList = new List<object>();
-            
+
             // Process valid timings with tie handling
             int currentRank = 1;
             for (int i = 0; i < validTimings.Count; i++)
             {
                 int rank = currentRank;
-                
+
                 // Count how many players have the same time (tie group)
                 int tieCount = 1;
-                while (i + tieCount < validTimings.Count && 
+                while (i + tieCount < validTimings.Count &&
                        validTimings[i].TimeMs == validTimings[i + tieCount].TimeMs)
                 {
                     tieCount++;
                 }
-                
+
                 // Get points for the current rank
                 int points = rank switch
                 {
@@ -162,7 +186,7 @@ namespace STMS.Api.Controllers
                     8 => 1,
                     _ => 0
                 };
-                
+
                 // Add all tied players with the same rank and points
                 for (int j = 0; j < tieCount; j++)
                 {
@@ -178,14 +202,14 @@ namespace STMS.Api.Controllers
                         points
                     });
                 }
-                
+
                 // Skip ahead by the number of tied players
                 i += tieCount - 1;
-                
+
                 // Next rank skips the tied positions
                 currentRank += tieCount;
             }
-            
+
             // Add invalid timings at the end with no rank
             foreach (var t in invalidTimings)
             {
