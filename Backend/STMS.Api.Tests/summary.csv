@@ -1,0 +1,5 @@
+Label,# Samples,Average,Min,Max,Std. Dev.,Error %,Throughput,Received KB/sec,Sent KB/sec,Avg. Bytes
+GET /api/tournaments,500,81,70,618,40.01,0.000%,37.94202,20.71,4.89,559.0
+GET /api/leaderboard/1,500,381,352,449,20.09,0.000%,37.17472,35.03,4.86,965.0
+GET /api/leaderboard/1?gender=male,500,380,351,430,19.74,0.000%,37.05900,31.05,5.28,858.0
+TOTAL,1500,280,70,618,144.04,0.000%,107.18114,83.11,14.37,794.0
