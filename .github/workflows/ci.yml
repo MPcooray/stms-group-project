@@ -6,20 +6,13 @@ on:
   pull_request:
     branches: [ development ]
 
-# --- STAGES ---
-# 1. build
-# 2. test
-# 3. verify
-
 jobs:
-  # ==================
-  # 1️⃣ BUILD STAGE
-  # ==================
+  # 1) BUILD
   build:
     name: Build (Backend + Frontend)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # --- Backend (.NET) ---
       - name: Setup .NET
@@ -31,7 +24,7 @@ jobs:
       - name: Build Backend
         run: dotnet build Backend/STMS.Api --configuration Release --no-restore
 
-      # --- Frontend (Node.js / pnpm) ---
+      # --- Frontend (Node + pnpm) ---
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -43,15 +36,13 @@ jobs:
       - name: Build Frontend
         run: pnpm run build --prefix Frontend
 
-  # ==================
-  # 2️⃣ TEST STAGE
-  # ==================
+  # 2) TEST
   test:
     name: Test (Backend + Frontend)
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # --- Backend Tests ---
       - name: Setup .NET
@@ -73,14 +64,11 @@ jobs:
       - name: Test Frontend
         run: npm run test:run --prefix Frontend
 
-  # ==================
-  # 3️⃣ VERIFY STAGE
-  # ==================
+  # 3) VERIFY
   verify:
     name: Verify / Summary
     needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Pipeline Summary
-        run: |
-          echo "✅ Build and tests completed successfully for commit $GITHUB_SHA"
+        run: echo "✅ Build and tests completed successfully for $GITHUB_SHA"
