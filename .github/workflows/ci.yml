@@ -6,43 +6,81 @@ on:
   pull_request:
     branches: [ development ]
 
+# --- STAGES ---
+# 1. build
+# 2. test
+# 3. verify
+
 jobs:
-  backend:
-    name: Build & Test Backend (.NET)
-    runs-on: windows-latest
-    defaults:
-      run:
-        working-directory: Backend/STMS.Api
+  # ==================
+  # 1️⃣ BUILD STAGE
+  # ==================
+  build:
+    name: Build (Backend + Frontend)
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      # --- Backend (.NET) ---
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
-      - name: Restore dependencies
-        run: dotnet restore
-      - name: Build
-        run: dotnet build --no-restore
-      - name: Test
-        run: dotnet test --no-build --verbosity normal
+      - name: Restore Backend
+        run: dotnet restore Backend/STMS.Api
+      - name: Build Backend
+        run: dotnet build Backend/STMS.Api --configuration Release --no-restore
 
-  frontend:
-    name: Build & Test Frontend (Node.js)
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: Frontend
-    steps:
-      - uses: actions/checkout@v3
+      # --- Frontend (Node.js / pnpm) ---
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
       - name: Install pnpm
         run: npm install -g pnpm
-      - name: Install dependencies
-        run: pnpm install
-      - name: Build
-        run: pnpm run build
-      - name: Test
-        run: npm run test:run
+      - name: Install Frontend Dependencies
+        run: pnpm install --prefix Frontend
+      - name: Build Frontend
+        run: pnpm run build --prefix Frontend
+
+  # ==================
+  # 2️⃣ TEST STAGE
+  # ==================
+  test:
+    name: Test (Backend + Frontend)
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      # --- Backend Tests ---
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - name: Test Backend
+        run: dotnet test Backend/STMS.Api --no-build --verbosity normal
+
+      # --- Frontend Tests ---
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      - name: Install pnpm
+        run: npm install -g pnpm
+      - name: Install Frontend Dependencies
+        run: pnpm install --prefix Frontend
+      - name: Test Frontend
+        run: npm run test:run --prefix Frontend
+
+  # ==================
+  # 3️⃣ VERIFY STAGE
+  # ==================
+  verify:
+    name: Verify / Summary
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pipeline Summary
+        run: |
+          echo "✅ Build and tests completed successfully for commit $GITHUB_SHA"
