@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using STMS.Api.Data;
-using Microsoft.Extensions.Logging;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -69,22 +68,32 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
-// Seed events for development (do not crash the entire app if seeding fails)
+// Apply migrations and seed events (non-fatal if DB not ready)
 using (var scope = app.Services.CreateScope())
 {
-    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    var db = scope.ServiceProvider.GetRequiredService<StmsDbContext>();
     try
     {
-        var db = scope.ServiceProvider.GetRequiredService<StmsDbContext>();
+        db.Database.Migrate();
+        // Seed default admin if missing (reads from configuration Admin:Email and Admin:Password)
+        var cfg = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+        var adminEmail = cfg["Admin:Email"] ?? "admin@stms.com";
+        var adminPassword = cfg["Admin:Password"] ?? "Admin#123";
+        if (!string.IsNullOrWhiteSpace(adminEmail))
+        {
+            if (!await db.Admins.AnyAsync(a => a.Email == adminEmail))
+            {
+                var hash = BCrypt.Net.BCrypt.HashPassword(adminPassword);
+                db.Admins.Add(new STMS.Api.Models.Admin { Email = adminEmail, PasswordHash = hash });
+                await db.SaveChangesAsync();
+            }
+        }
         STMS.Api.Data.SeedEvents.SeedTournamentEvents(db);
     }
     catch (Exception ex)
     {
-        // Log the error and continue. Common causes: transient network/DNS issues or Azure SQL
-        // firewall blocking the client IP while developing locally. This prevents the app from
-        // exiting immediately so you can inspect logs and fix networking in Azure.
-        logger.LogError(ex, "Database seeding failed (this is non-fatal in development).\n" +
-            "If you're using Azure SQL ensure your client IP is allowed in the server firewall rules.");
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogWarning(ex, "Database migration/seeding failed on startup. Continuing to run.");
     }
 }
 
@@ -99,16 +108,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("frontend");
 
-// Serve static frontend files from wwwroot (populated by the Docker build)
-app.UseDefaultFiles();
-app.UseStaticFiles();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
 // sanity endpoints
-// Keep a lightweight API-info endpoint but serve the SPA at the site root.
-app.MapGet("/api-info", () => Results.Ok(new { ok = true, time = DateTime.UtcNow }));
+app.MapGet("/", () => Results.Ok(new { ok = true, time = DateTime.UtcNow }));
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.MapGet("/db-test", async (StmsDbContext db) =>
 {
@@ -117,8 +121,4 @@ app.MapGet("/db-test", async (StmsDbContext db) =>
 });
 
 app.MapControllers();
-
-// If no other endpoint matches, serve the SPA's index.html from wwwroot
-app.MapFallbackToFile("index.html");
-
 app.Run();

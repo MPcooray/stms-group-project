@@ -17,8 +17,18 @@ namespace STMS.Api.Controllers
 
         // GET: api/leaderboard/{tournamentId}
         [HttpGet("{tournamentId}")]
-        public async Task<IActionResult> GetLeaderboard(int tournamentId)
+        public async Task<IActionResult> GetLeaderboard(int tournamentId, [FromQuery] string? gender)
         {
+            // Normalize gender filter (Male/Female) if provided; ignore otherwise for backward-compat
+            string? genderFilter = null;
+            string? genderLower = null;
+            if (!string.IsNullOrWhiteSpace(gender))
+            {
+                var g = gender.Trim().ToLowerInvariant();
+                if (g == "male" || g == "m") { genderFilter = "Male"; genderLower = "male"; }
+                else if (g == "female" || g == "f") { genderFilter = "Female"; genderLower = "female"; }
+                else return BadRequest(new { error = "Invalid gender. Allowed values: male, female." });
+            }
             // Get all events for tournament
             var eventIds = await _db.TournamentEvents
                 .Where(e => e.TournamentId == tournamentId)
@@ -36,41 +46,63 @@ namespace STMS.Api.Controllers
                 .Select(u => u.Id)
                 .ToListAsync();
 
-            var players = await _db.Players
-                .Where(p => universityIds.Contains(p.UniversityId))
+            var playersQuery = _db.Players
+                .Where(p => universityIds.Contains(p.UniversityId));
+            if (genderFilter != null)
+            {
+                // Case-insensitive gender match with trim to be robust against stored values
+                playersQuery = playersQuery.Where(p => p.Gender != null && p.Gender!.Trim().ToLower() == genderLower);
+            }
+            var players = await playersQuery
                 .Include(p => p.University)
                 .ToListAsync();
+
+            var filteredPlayerIds = players.Select(p => p.Id).ToHashSet();
 
             // Aggregate points per player
             var playerPoints = new Dictionary<int, int>();
             foreach (var eventId in eventIds)
             {
-                var eventTimings = timings.Where(t => t.EventId == eventId && t.TimeMs > 0)
+                var eventTimings = timings.Where(t => t.EventId == eventId && t.TimeMs > 0 && (genderFilter == null || filteredPlayerIds.Contains(t.PlayerId)))
                     .OrderBy(t => t.TimeMs)
                     .ToList();
+
+                // Handle tie cases in point allocation
+                int eventRank = 1;
                 for (int i = 0; i < eventTimings.Count; i++)
                 {
-                    var rank = i + 1;
-                    int points = rank switch
+                    // Determine actual rank (considering ties)
+                    int rank = eventRank;
+
+                    // Count how many players have the same time (tie group)
+                    int tieCount = 1;
+                    while (i + tieCount < eventTimings.Count &&
+                           eventTimings[i].TimeMs == eventTimings[i + tieCount].TimeMs)
                     {
-                        1 => 10,
-                        2 => 8,
-                        3 => 7,
-                        4 => 5,
-                        5 => 4,
-                        6 => 3,
-                        7 => 2,
-                        8 => 1,
-                        _ => 0
-                    };
-                    if (!playerPoints.ContainsKey(eventTimings[i].PlayerId))
-                        playerPoints[eventTimings[i].PlayerId] = 0;
-                    playerPoints[eventTimings[i].PlayerId] += points;
+                        tieCount++;
+                    }
+
+                    // Get points for the current rank
+                    int points = GetPointsForRank(rank);
+
+                    // Allocate points to all tied players
+                    for (int j = 0; j < tieCount; j++)
+                    {
+                        if (!playerPoints.ContainsKey(eventTimings[i + j].PlayerId))
+                            playerPoints[eventTimings[i + j].PlayerId] = 0;
+                        playerPoints[eventTimings[i + j].PlayerId] += points;
+                    }
+
+                    // Skip ahead by the number of tied players
+                    i += tieCount - 1;
+
+                    // Next rank skips the tied positions
+                    eventRank += tieCount;
                 }
             }
 
-            // Build player leaderboard
-            var playerLeaderboard = players
+            // Build player leaderboard with ranking
+            var playerLeaderboardData = players
                 .Where(p => playerPoints.ContainsKey(p.Id))
                 .Select(p => new
                 {
@@ -78,22 +110,61 @@ namespace STMS.Api.Controllers
                     name = p.Name,
                     university = p.University != null ? p.University.Name : "",
                     universityId = p.UniversityId,
+                    gender = p.Gender,
                     totalPoints = playerPoints[p.Id]
                 })
                 .OrderByDescending(x => x.totalPoints)
                 .ToList();
 
+            // Assign ranks with tie handling
+            var playerLeaderboard = new List<object>();
+            int currentRank = 1;
+            for (int i = 0; i < playerLeaderboardData.Count; i++)
+            {
+                int rank = currentRank;
+
+                // Count how many players have the same points (tie group)
+                int tieCount = 1;
+                while (i + tieCount < playerLeaderboardData.Count &&
+                       playerLeaderboardData[i].totalPoints == playerLeaderboardData[i + tieCount].totalPoints)
+                {
+                    tieCount++;
+                }
+
+                // Add all tied players with the same rank
+                for (int j = 0; j < tieCount; j++)
+                {
+                    var player = playerLeaderboardData[i + j];
+                    playerLeaderboard.Add(new
+                    {
+                        rank = rank,
+                        id = player.id,
+                        name = player.name,
+                        university = player.university,
+                        universityId = player.universityId,
+                        gender = player.gender,
+                        totalPoints = player.totalPoints
+                    });
+                }
+
+                // Skip ahead by the number of tied players
+                i += tieCount - 1;
+
+                // Next rank skips the tied positions
+                currentRank += tieCount;
+            }
+
             // Aggregate points per university
             var universityPoints = new Dictionary<int, int>();
-            foreach (var player in playerLeaderboard)
+            foreach (var player in playerLeaderboardData)
             {
                 if (!universityPoints.ContainsKey(player.universityId))
                     universityPoints[player.universityId] = 0;
                 universityPoints[player.universityId] += player.totalPoints;
             }
 
-            // Build university leaderboard
-            var universityLeaderboard = _db.Universities
+            // Build university leaderboard with ranking
+            var universityLeaderboardData = _db.Universities
                 .Where(u => universityIds.Contains(u.Id))
                 .ToList()
                 .Where(u => universityPoints.ContainsKey(u.Id))
@@ -106,11 +177,66 @@ namespace STMS.Api.Controllers
                 .OrderByDescending(x => x.totalPoints)
                 .ToList();
 
+            // Assign ranks with tie handling for universities
+            var universityLeaderboard = new List<object>();
+            int universityRank = 1;
+            for (int i = 0; i < universityLeaderboardData.Count; i++)
+            {
+                int rank = universityRank;
+
+                // Count how many universities have the same points (tie group)
+                int tieCount = 1;
+                while (i + tieCount < universityLeaderboardData.Count &&
+                       universityLeaderboardData[i].totalPoints == universityLeaderboardData[i + tieCount].totalPoints)
+                {
+                    tieCount++;
+                }
+
+                // Add all tied universities with the same rank
+                for (int j = 0; j < tieCount; j++)
+                {
+                    var university = universityLeaderboardData[i + j];
+                    universityLeaderboard.Add(new
+                    {
+                        rank = rank,
+                        id = university.id,
+                        name = university.name,
+                        totalPoints = university.totalPoints
+                    });
+                }
+
+                // Skip ahead by the number of tied universities
+                i += tieCount - 1;
+
+                // Next rank skips the tied positions
+                universityRank += tieCount;
+            }
+
             // Return both leaderboards
-            return Ok(new {
+            return Ok(new
+            {
                 players = playerLeaderboard,
                 universities = universityLeaderboard
             });
+        }
+
+        /// <summary>
+        /// Returns points based on rank position
+        /// </summary>
+        private int GetPointsForRank(int rank)
+        {
+            return rank switch
+            {
+                1 => 10,
+                2 => 8,
+                3 => 7,
+                4 => 5,
+                5 => 4,
+                6 => 3,
+                7 => 2,
+                8 => 1,
+                _ => 0
+            };
         }
     }
 }
