@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { Link, useParams } from "react-router-dom"
 import DashboardLayout from "../components/DashboardLayout.jsx"
 import { createEvent, deleteEvent, listEventsByTournament, updateEvent } from "../services/tournamentEventsService.js"
+import eventTypes from "../utils/eventTypes.js"
 
 const empty = { name: "" }
 
@@ -9,6 +10,7 @@ export default function Events() {
   const { tournamentId } = useParams()
   const [items, setItems] = useState([])
   const [form, setForm] = useState(empty)
+  const [selectedType, setSelectedType] = useState("")
   const [editingId, setEditingId] = useState(null)
   const [status, setStatus] = useState("")
 
@@ -31,17 +33,20 @@ export default function Events() {
 
   const onSubmit = async (e) => {
     e.preventDefault()
-    if (!form.name.trim()) return setStatus("Event name is required")
+    // Choose the selected predefined type unless "other" is chosen, then use form.name
+    const nameToSend = selectedType && selectedType !== "other" ? selectedType : form.name
+    if (!nameToSend || !nameToSend.trim()) return setStatus("Event name is required")
     try {
       if (editingId) {
-        await updateEvent(editingId, { name: form.name })
+        await updateEvent(editingId, { name: nameToSend })
         setStatus("Event updated successfully ✔")
       } else {
-        await createEvent(tournamentId, { name: form.name })
+        await createEvent(tournamentId, { name: nameToSend })
         setStatus("Event added successfully ✔")
       }
       setForm(empty)
       setEditingId(null)
+      setSelectedType("")
       await load()
     } catch (error) {
       const msg = error?.response?.data?.error || error?.message || "Save failed"
@@ -52,7 +57,10 @@ export default function Events() {
   }
 
   const onEdit = (it) => {
-    setForm({ name: it.name })
+    // If the name matches a predefined type, preselect it; otherwise put it in the custom input
+    const match = eventTypes.find((x) => x === it.name)
+    setSelectedType(match || "other")
+    setForm({ name: match ? "" : it.name })
     setEditingId(it.id)
   }
 
@@ -81,11 +89,33 @@ export default function Events() {
               <h3>{editingId ? "Edit Event" : "Add Event"}</h3>
               <form onSubmit={onSubmit}>
                 <label>Name</label>
-                <input
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="Enter event name (e.g., 100m Freestyle)"
-                />
+                <select
+                  value={selectedType}
+                  onChange={(e) => {
+                    const v = e.target.value
+                    setSelectedType(v)
+                    // if switching to a predefined type, clear custom input
+                    if (v && v !== "other") setForm({ ...form, name: "" })
+                  }}
+                >
+                  <option value="">-- Choose an event --</option>
+                  {eventTypes.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                  <option value="other">Other (custom)</option>
+                </select>
+                {selectedType === "other" && (
+                  <>
+                    <div className="space"></div>
+                    <input
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      placeholder="Enter custom event name"
+                    />
+                  </>
+                )}
                 <div className="space"></div>
                 <button className="btn primary">{editingId ? "Update" : "Add"}</button>
                 {editingId && (
@@ -95,7 +125,8 @@ export default function Events() {
                     style={{ marginLeft: 8 }}
                     onClick={() => {
                       setEditingId(null)
-                      setForm(empty)
+                        setForm(empty)
+                        setSelectedType("")
                     }}
                   >
                     Cancel
