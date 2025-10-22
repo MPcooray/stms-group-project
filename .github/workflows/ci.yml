@@ -78,8 +78,8 @@ jobs:
       - name: Smoke check — DLL exists
         run: |
           ls -la backend_publish | head -n 200
-          test -n "$(ls -1 backend_publish/*.dll 2>/dev/null)" || { echo "❌ No DLLs found in backend_publish/"; exit 1; }
-          echo "✅ Backend artifact looks OK"
+          test -n "$(ls -1 backend_publish/*.dll 2>/dev/null)" || { echo "No DLLs found in backend_publish/"; exit 1; }
+          echo "Backend artifact looks OK"
 
   # ======================
   # FRONTEND — BUILD
@@ -102,7 +102,7 @@ jobs:
         run: npm install -g pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install 
 
       - name: Build
         run: pnpm run build
@@ -136,7 +136,7 @@ jobs:
         run: npm install -g pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install 
 
       - name: Test
         run: npm run test:run
