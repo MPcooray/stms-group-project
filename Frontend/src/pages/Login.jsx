@@ -34,7 +34,6 @@ export default function Login() {
       setLoading(false)
     }
   }
-
   return (
     <div className="login-page">
       <div className="container login-container">
