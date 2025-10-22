@@ -1,0 +1,17 @@
+services:
+  app:
+    # Single combined image (build from root Dockerfile). Image name uses IMAGE_REGISTRY
+    # set by CI. The image will contain both backend and frontend assets and serve them
+    # from the ASP.NET Core runtime.
+    image: ${IMAGE_REGISTRY}/stms-app:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: "http://localhost:5001"
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "5001:80"

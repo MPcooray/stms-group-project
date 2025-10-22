@@ -1,22 +1,18 @@
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import { useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { listTournaments } from "../services/tournamentService.js";
 import { listEventsByTournament } from "../services/eventService.js";
 import { getEventResults } from "../services/resultsService.js";
-import { listTournaments } from "../services/tournamentService.js";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export default function PublicTournamentResults() {
   const { tournamentId } = useParams();
-  const location = useLocation();
-  const navigate = useNavigate();
   const [tournament, setTournament] = useState(null);
   const [events, setEvents] = useState([]);
   const [results, setResults] = useState({});
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('results');
-  const genderFromUrl = useMemo(() => new URLSearchParams(location.search).get('gender') || 'All', [location.search]);
-  const [gender, setGender] = useState(genderFromUrl);
 
   useEffect(() => {
     const loadData = async () => {
@@ -34,7 +30,7 @@ export default function PublicTournamentResults() {
           // Load results for each event
           if (eventsData && eventsData.length > 0) {
             const resultsPromises = eventsData.map(event => 
-              getEventResults(event.id, gender === 'All' ? undefined : gender).catch(() => [])
+              getEventResults(event.id).catch(() => [])
             );
             const resultsArray = await Promise.all(resultsPromises);
             
@@ -55,19 +51,7 @@ export default function PublicTournamentResults() {
     if (tournamentId) {
       loadData();
     }
-  }, [tournamentId, gender]);
-
-  // Keep URL query in sync when gender changes
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (gender && gender !== 'All') params.set('gender', gender);
-    else params.delete('gender');
-    const search = params.toString();
-    const newUrl = `${location.pathname}${search ? `?${search}` : ''}`;
-    if (newUrl !== `${location.pathname}${location.search}`) {
-      navigate(newUrl, { replace: true });
-    }
-  }, [gender]);
+  }, [tournamentId]);
 
   const formatTiming = (ms) => {
     if (typeof ms !== "number" || ms <= 0) return "-";
@@ -187,7 +171,7 @@ export default function PublicTournamentResults() {
 
                       if (eventResults.length > 0) {
                         const head = [['Rank', 'Player', 'University', 'Time', 'Points']];
-                        const body = eventResults.map((r) => [r.rank || '-', r.playerName || '-', r.universityName || '-', formatTiming(r.timeMs), r.points ?? '-']);
+                        const body = eventResults.map((r, idx) => [idx + 1, r.playerName || '-', r.universityName || '-', formatTiming(r.timeMs), r.points ?? '-']);
 
                         autoTable(pdf, {
                           head,
@@ -222,13 +206,6 @@ export default function PublicTournamentResults() {
                 📄 Export to PDF
               </button>
             </div>
-          </div>
-
-          {/* Gender selector */}
-          <div className="view-toggle" style={{ marginTop: '1rem' }}>
-            <button className={`toggle-btn ${gender === 'All' ? 'active' : ''}`} onClick={() => setGender('All')}>All</button>
-            <button className={`toggle-btn ${gender === 'Male' ? 'active' : ''}`} onClick={() => setGender('Male')}>Male</button>
-            <button className={`toggle-btn ${gender === 'Female' ? 'active' : ''}`} onClick={() => setGender('Female')}>Female</button>
           </div>
 
           {/* Tabs */}
@@ -269,13 +246,11 @@ export default function PublicTournamentResults() {
                               </tr>
                             </thead>
                             <tbody>
-                              {results[event.id].map((result) => (
-                                <tr key={`${result.playerId}-${result.eventId}`} className={getRankClass(result.rank)}>
+                              {results[event.id].map((result, index) => (
+                                <tr key={`${result.playerId}-${result.eventId}`} className={getRankClass(index + 1)}>
                                   <td className="rank-cell">
-                                    <span className="rank">{result.rank || '-'}</span>
-                                    {result.rank && result.rank == 1 && <span className="medal">🥇</span>}
-                                    {result.rank && result.rank == 2 && <span className="medal">🥈</span>}
-                                    {result.rank && result.rank == 3 && <span className="medal">🥉</span>}
+                                    <span className="rank">{index + 1}</span>
+                                    {index < 3 && <span className="medal">🏅</span>}
                                   </td>
                                   <td className="player-name">{result.playerName}</td>
                                   <td className="university">{result.universityName}</td>

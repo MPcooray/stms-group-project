@@ -1,9 +1,7 @@
 import axios from "axios";
 
-export async function getEventResults(eventId, gender) {
+export async function getEventResults(eventId) {
   // Assumes backend endpoint: /api/events/{eventId}/results
-  const params = {};
-  if (gender && gender !== 'All') params.gender = gender;
-  const res = await axios.get(`/api/events/${eventId}/results`, { params });
+  const res = await axios.get(`/api/events/${eventId}/results`);
   return Array.isArray(res.data) ? res.data : [];
 }
