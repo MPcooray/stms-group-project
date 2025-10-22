@@ -6,67 +6,106 @@ on:
   pull_request:
     branches: [ development ]
 
+# Stages (via needs):
+# 1) build  →  2) test  →  3) verify
+
 jobs:
-  # ======================
-  # BACKEND — BUILD
-  # ======================
-  backend_build:
-    name: Backend — Build (.NET)
+  # ==================
+  # 1) BUILD (both)
+  # ==================
+  build:
+    name: Build (Backend + Frontend)
     runs-on: windows-latest
-    defaults:
-      run:
-        working-directory: Backend/STMS.Api
     steps:
       - uses: actions/checkout@v4
 
+      # --- Backend (.NET) ---
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
 
-      - name: Restore
-        run: dotnet restore
+      - name: Restore Backend
+        run: dotnet restore Backend/STMS.Api
 
-      - name: Build (Release)
-        run: dotnet build -c Release --no-restore
+      - name: Build Backend
+        run: dotnet build Backend/STMS.Api --configuration Release --no-restore
 
-      - name: Publish (self-contained folder)
-        run: dotnet publish -c Release -o ../../artifacts/backend --no-build
+      - name: Publish Backend (artifact)
+        run: dotnet publish Backend/STMS.Api -c Release -o artifacts/backend --no-build
 
+      # --- Frontend (Node + pnpm) ---
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install Frontend Dependencies
+        run: pnpm -C Frontend install
+
+      - name: Build Frontend
+        run: pnpm -C Frontend run build   # vite outputs to Frontend/build per vite.config
+
+      # --- Upload artifacts for Verify stage ---
       - name: Upload backend artifact
         uses: actions/upload-artifact@v4
         with:
           name: backend_publish
           path: artifacts/backend/
+          if-no-files-found: error
           retention-days: 7
 
-  # ======================
-  # BACKEND — TEST
-  # ======================
-  backend_test:
-    name: Backend — Test (.NET)
-    needs: backend_build
+      - name: Upload frontend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend_dist
+          path: Frontend/build/
+          if-no-files-found: error
+          retention-days: 7
+
+  # ==================
+  # 2) TEST (both)
+  # ==================
+  test:
+    name: Test (Backend + Frontend)
+    needs: build
     runs-on: windows-latest
-    defaults:
-      run:
-        working-directory: Backend/STMS.Api
     steps:
       - uses: actions/checkout@v4
 
+      # --- Backend Tests ---
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
 
-      - name: Test
-        run: dotnet test -c Release --no-build --verbosity normal
+      - name: Test Backend
+        run: dotnet test Backend/STMS.Api --no-build --verbosity normal --configuration Release
 
-  # ======================
-  # BACKEND — VERIFY
-  # ======================
-  backend_verify:
-    name: Backend — Verify artifact
-    needs: backend_test
+      # --- Frontend Tests ---
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install Frontend Dependencies
+        run: pnpm -C Frontend install 
+
+      - name: Test Frontend
+        run: pnpm -C Frontend run test:run
+
+  # ==================
+  # 3) VERIFY (both)
+  # ==================
+  verify:
+    name: Verify / Summary
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Download backend artifact
@@ -75,88 +114,23 @@ jobs:
           name: backend_publish
           path: backend_publish
 
-      - name: Smoke check — DLL exists
+      - name: Smoke check — Backend DLL exists
         run: |
           ls -la backend_publish | head -n 200
           test -n "$(ls -1 backend_publish/*.dll 2>/dev/null)" || { echo "No DLLs found in backend_publish/"; exit 1; }
           echo "Backend artifact looks OK"
 
-  # ======================
-  # FRONTEND — BUILD
-  # ======================
-  frontend_build:
-    name: Frontend — Build (Node + pnpm)
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: Frontend
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-
-      - name: Install pnpm
-        run: npm install -g pnpm
-
-      - name: Install dependencies
-        run: pnpm install 
-
-      - name: Build
-        run: pnpm run build
-
-      - name: Upload frontend artifact (dist/)
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend_dist
-          path: Frontend/dist/
-          retention-days: 7
-
-  # ======================
-  # FRONTEND — TEST
-  # ======================
-  frontend_test:
-    name: Frontend — Test (pnpm)
-    needs: frontend_build
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: Frontend
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-
-      - name: Install pnpm
-        run: npm install -g pnpm
-
-      - name: Install dependencies
-        run: pnpm install 
-
-      - name: Test
-        run: npm run test:run
-
-  # ======================
-  # FRONTEND — VERIFY
-  # ======================
-  frontend_verify:
-    name: Frontend — Verify artifact
-    needs: frontend_test
-    runs-on: ubuntu-latest
-    steps:
       - name: Download frontend artifact
         uses: actions/download-artifact@v4
         with:
           name: frontend_dist
-          path: dist
+          path: build
 
-      - name: Smoke check — dist/index.html exists
+      - name: Smoke check — build/index.html exists
         run: |
-          ls -la dist | head -n 200
-          test -f dist/index.html || { echo "dist/index.html missing"; exit 1; }
+          ls -la build | head -n 200
+          test -f build/index.html || { echo "build/index.html missing"; exit 1; }
           echo "Frontend artifact looks OK"
+
+      - name: Pipeline Summary
+        run: echo "Build, Test, and Verify passed for $GITHUB_SHA"
