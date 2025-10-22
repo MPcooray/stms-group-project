@@ -100,9 +100,9 @@ export default function Results() {
                         </tr>
                       </thead>
                       <tbody>
-                        {validResults.map((r) => (
+                        {validResults.map((r, idx) => (
                           <tr key={r.playerId}>
-                            <td>{r.rank ?? '-'}</td>
+                            <td>{idx + 1}</td>
                             <td>{r.playerName}</td>
                             <td>{r.universityName}</td>
                             <td>{formatTiming(r.timeMs)}</td>

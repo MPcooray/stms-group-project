@@ -112,28 +112,7 @@ export default function EventTimings() {
     }
   }
 
-  // Calculate ranks with tie handling
-  const rankedPlayers = [];
-  let rank = 1;
-  for (let i = 0; i < sortedPlayers.length; i++) {
-    if (sortedPlayers[i].timing === null) {
-      rankedPlayers.push({ ...sortedPlayers[i], rank: '-' });
-      continue;
-    }
-    // Count ties
-    let tieCount = 1;
-    while (
-      i + tieCount < sortedPlayers.length &&
-      sortedPlayers[i].timing === sortedPlayers[i + tieCount].timing
-    ) {
-      tieCount++;
-    }
-    for (let j = 0; j < tieCount; j++) {
-      rankedPlayers.push({ ...sortedPlayers[i + j], rank });
-    }
-    i += tieCount - 1;
-    rank += tieCount;
-  }
+  let currentRank = 1;
 
   return (
     <DashboardLayout>
@@ -183,11 +162,12 @@ export default function EventTimings() {
                   </tr>
                 </thead>
                 <tbody>
-                  {rankedPlayers.map((p) => {
-                    const points = typeof p.rank === "number" ? getPoints(p.rank) : "-";
+                  {sortedPlayers.map((p) => {
+                    const rank = p.timing !== null ? currentRank++ : "-";
+                    const points = typeof rank === "number" ? getPoints(rank) : "-";
                     return (
                       <tr key={p.id}>
-                        <td>{p.rank}</td>
+                        <td>{rank}</td>
                         <td>{p.name}</td>
                         <td>{p.university}</td>
                         <td>

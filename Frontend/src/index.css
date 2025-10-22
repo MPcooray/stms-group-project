@@ -275,23 +275,3 @@ h2, h3 {
   color: var(--text);
   border-radius: 8px;
 }
-
-/* Login page background */
-.login-bg {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  padding: 40px 16px;
-  /* Use image from public folder: /public/loginhero.(png|jpg|jpeg|webp) */
-  background-image:
-    linear-gradient(rgba(6, 16, 31, 0.55), rgba(6, 16, 31, 0.75)),
-    url('/loginhero.jpg'),
-    url('/loginhero.png'),
-    url('/loginhero.webp'),
-    url('/loginhero.jpeg');
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
-}
