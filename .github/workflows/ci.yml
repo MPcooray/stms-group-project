@@ -32,9 +32,9 @@ jobs:
       - name: Install pnpm
         run: npm install -g pnpm
       - name: Install Frontend Dependencies
-        run: pnpm install --prefix Frontend
+        run: pnpm install
       - name: Build Frontend
-        run: pnpm run build --prefix Frontend
+        run: pnpm run build
 
   # 2) TEST
   test:
@@ -60,9 +60,9 @@ jobs:
       - name: Install pnpm
         run: npm install -g pnpm
       - name: Install Frontend Dependencies
-        run: pnpm install --prefix Frontend
+        run: pnpm install
       - name: Test Frontend
-        run: npm run test:run --prefix Frontend
+        run: npm run test:run 
 
   # 3) VERIFY
   verify:
@@ -71,4 +71,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Pipeline Summary
-        run: echo "✅ Build and tests completed successfully for $GITHUB_SHA"
+        run: echo "Build and tests completed successfully for $GITHUB_SHA"
