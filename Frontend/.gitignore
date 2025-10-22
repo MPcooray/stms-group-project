@@ -27,4 +27,5 @@ yarn-error.log*
 next-env.d.ts
 
 # Ignore Mac system files
+
 .DS_Store
