@@ -6,8 +6,8 @@ import { useAuth } from "../context/AuthContext.jsx"
 import { email as emailValidator, required } from "../utils/validators.js"
 
 export default function Login() {
-  const [email, setEmail] = useState("admin@stms.com")
-  const [password, setPassword] = useState("Admin#123")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
@@ -42,14 +42,23 @@ export default function Login() {
         <h2>Admin Login</h2>
         <p className="muted">Dive in to manage AquaChamps</p>
         <div className="space"></div>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} autoComplete="off">
           <label>Email</label>
-          <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin@stms.com" />
+          <input
+            type="email"
+            name="email"
+            autoComplete="off"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="example@stms.com"
+          />
           <div className="space"></div>
           <label>Password</label>
           <input
             id="password"
             type="password"
+            name="password"
+            autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
