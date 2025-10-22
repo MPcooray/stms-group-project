@@ -15,6 +15,48 @@
   flex-direction: column;
 }
 
+/* Login page background */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center; /* vertically center */
+  justify-content: center; /* horizontally center */
+  background: rgba(17, 26, 43, 0.8); /* slightly more transparent */
+  /* Use the frontend public folder path at runtime: /loginhero.jpg; second URL is a safe fallback */
+  background-image: 
+    linear-gradient(rgba(11, 18, 32, 0.70), rgba(11, 18, 32, 0.88)), 
+    url('/loginhero.jpg'),
+    url('https://images.unsplash.com/photo-1504610926078-a1611febcad3?auto=format&fit=crop&w=1600&q=60');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Login card sizing */
+.login-container {
+  width: 100%;
+  max-width: 560px; /* cleaner, centered container width */
+  padding: 0; /* no chrome around the card */
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+  background: rgba(17, 26, 43, 0.5); 
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+  border: 6px solid rgba(0, 0, 0, 0.4); /* clearer border */
+  border-radius: 14px; /* rounded corners for a clean card */
+}
+
+@media (max-width: 640px) {
+  .login-card {
+    max-width: 92vw;
+  }
+}
+
 /* Public header */
 .public-header {
   background: rgba(17, 26, 43, 0.95);
@@ -258,14 +300,75 @@
 .public-footer {
   background: rgba(17, 26, 43, 0.9);
   border-top: 1px solid #1f2b44;
-  padding: 2rem 0;
+  padding: 2rem 0; /* original size; waves can overlap */
   text-align: center;
   margin-top: auto;
+  position: relative;
+  overflow: hidden; /* contain waves */
 }
 
 .public-footer p {
   color: var(--muted);
   margin: 0;
+  position: relative;
+  z-index: 2; /* above waves */
+}
+
+/* Waves: layered animated shapes for a swimming vibe */
+.public-footer .waves {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 90px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.public-footer .wave {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 90px;
+  background-repeat: repeat-x;
+  background-size: 600px 100px;
+  opacity: 0.7;
+}
+
+/* Wave layers with different speeds and offsets */
+.public-footer .wave1 {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='100' viewBox='0 0 600 100' preserveAspectRatio='none'><path d='M0 40 Q 50 10 100 40 T 200 40 T 300 40 T 400 40 T 500 40 T 600 40 V100 H0 Z' fill='%232ea0ff' opacity='0.28'/></svg>");
+  animation: move-left 20s linear infinite;
+}
+
+.public-footer .wave2 {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='100' viewBox='0 0 600 100' preserveAspectRatio='none'><path d='M0 45 Q 50 15 100 45 T 200 45 T 300 45 T 400 45 T 500 45 T 600 45 V100 H0 Z' fill='%23008cff' opacity='0.22'/></svg>");
+  bottom: -6px;
+  animation: move-right 28s linear infinite;
+}
+
+.public-footer .wave3 {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='100' viewBox='0 0 600 100' preserveAspectRatio='none'><path d='M0 50 Q 50 20 100 50 T 200 50 T 300 50 T 400 50 T 500 50 T 600 50 V100 H0 Z' fill='%230066cc' opacity='0.20'/></svg>");
+  bottom: -12px;
+  animation: move-left 14s linear infinite;
+}
+
+@keyframes move-left {
+  from { background-position-x: 0; }
+  to   { background-position-x: -600px; }
+}
+
+@keyframes move-right {
+  from { background-position-x: 0; }
+  to   { background-position-x: 600px; }
+}
+
+/* Responsive tweak: slightly reduce wave height on small screens */
+@media (max-width: 480px) {
+  .public-footer { padding: 2rem 0; }
+  .public-footer .waves { height: 70px; }
+  .public-footer .wave { height: 70px; background-size: 480px 80px; }
 }
 
 /* Page header */

@@ -1,16 +1,20 @@
-import { Link, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { listTournaments } from "../services/tournamentService.js";
-import { getLeaderboard } from "../services/leaderboardService.js";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { getLeaderboard } from "../services/leaderboardService.js";
+import { listTournaments } from "../services/tournamentService.js";
 
 export default function PublicTournamentLeaderboard() {
   const { tournamentId } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [tournament, setTournament] = useState(null);
   const [leaderboard, setLeaderboard] = useState({ players: [], universities: [] });
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState('players');
+  const genderFromUrl = useMemo(() => new URLSearchParams(location.search).get('gender') || 'All', [location.search]);
+  const [gender, setGender] = useState(genderFromUrl);
 
   useEffect(() => {
     const loadData = async () => {
@@ -22,7 +26,7 @@ export default function PublicTournamentLeaderboard() {
 
         if (foundTournament) {
           // Load leaderboard data
-          const leaderboardData = await getLeaderboard(tournamentId);
+          const leaderboardData = await getLeaderboard(tournamentId, gender === 'All' ? undefined : gender);
           setLeaderboard(leaderboardData || { players: [], universities: [] });
         }
       } catch (error) {
@@ -36,7 +40,19 @@ export default function PublicTournamentLeaderboard() {
     if (tournamentId) {
       loadData();
     }
-  }, [tournamentId]);
+  }, [tournamentId, gender]);
+
+  // Keep URL query in sync when gender changes
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (gender && gender !== 'All') params.set('gender', gender);
+    else params.delete('gender');
+    const search = params.toString();
+    const newUrl = `${location.pathname}${search ? `?${search}` : ''}`;
+    if (newUrl !== `${location.pathname}${location.search}`) {
+      navigate(newUrl, { replace: true });
+    }
+  }, [gender]);
 
   const getRankClass = (rank) => {
     switch(rank) {
@@ -144,7 +160,7 @@ export default function PublicTournamentLeaderboard() {
 
                     if (activeView === 'players') {
                       const head = [['Rank', 'Player', 'University', 'Total Points']];
-                      const body = leaderboard.players.map((p, idx) => [idx + 1, p.name || '-', p.university || '-', p.totalPoints ?? '-']);
+                      const body = leaderboard.players.map((p) => [p.rank || '-', p.name || '-', p.university || '-', p.totalPoints ?? '-']);
                       autoTable(pdf, {
                         head,
                         body,
@@ -156,7 +172,7 @@ export default function PublicTournamentLeaderboard() {
                       });
                     } else {
                       const head = [['Rank', 'University', 'Total Points']];
-                      const body = leaderboard.universities.map((u, idx) => [idx + 1, u.name || '-', u.totalPoints ?? '-']);
+                      const body = leaderboard.universities.map((u) => [u.rank || '-', u.name || '-', u.totalPoints ?? '-']);
                       autoTable(pdf, {
                         head,
                         body,
@@ -196,6 +212,13 @@ export default function PublicTournamentLeaderboard() {
             </button>
           </div>
 
+          {/* Gender selector */}
+          <div className="view-toggle" style={{ marginTop: '1rem' }}>
+            <button className={`toggle-btn ${gender === 'All' ? 'active' : ''}`} onClick={() => setGender('All')}>All</button>
+            <button className={`toggle-btn ${gender === 'Male' ? 'active' : ''}`} onClick={() => setGender('Male')}>Male</button>
+            <button className={`toggle-btn ${gender === 'Female' ? 'active' : ''}`} onClick={() => setGender('Female')}>Female</button>
+          </div>
+
           {/* Leaderboard content */}
           {activeView === 'players' && (
             <div className="leaderboard-content">
@@ -212,11 +235,11 @@ export default function PublicTournamentLeaderboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {leaderboard.players.map((player, index) => (
-                        <tr key={player.id} className={getRankClass(index + 1)}>
+                      {leaderboard.players.map((player) => (
+                        <tr key={player.id} className={getRankClass(player.rank)}>
                           <td className="rank-cell">
                             <span className="rank-display">
-                              {getRankIcon(index + 1)}
+                              {getRankIcon(player.rank)}
                             </span>
                           </td>
                           <td className="player-name">{player.name}</td>
@@ -250,11 +273,11 @@ export default function PublicTournamentLeaderboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {leaderboard.universities.map((university, index) => (
-                        <tr key={university.id} className={getRankClass(index + 1)}>
+                      {leaderboard.universities.map((university) => (
+                        <tr key={university.id} className={getRankClass(university.rank)}>
                           <td className="rank-cell">
                             <span className="rank-display">
-                              {getRankIcon(index + 1)}
+                              {getRankIcon(university.rank)}
                             </span>
                           </td>
                           <td className="university-name">{university.name}</td>
