@@ -31,9 +31,9 @@ jobs:
           node-version: '20.x'
       - name: Install pnpm
         run: npm install -g pnpm
-      - name: Install Frontend Dependencies
+      - name: Install dependencies
         run: pnpm install
-      - name: Build Frontend
+      - name: Build
         run: pnpm run build
 
   # 2) TEST
