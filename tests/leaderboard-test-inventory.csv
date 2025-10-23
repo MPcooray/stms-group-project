@@ -1,0 +1,16 @@
+File,Test Case,Purpose,Status
+Frontend/src/pages/__tests__/PublicTournamentLeaderboard.export.test.jsx,"builds PDF with player table when Export to PDF clicked (players view)","Verify jsPDF + autoTable are invoked when user clicks Export in players view (ensures PDF is built and saved)",passed
+Frontend/src/pages/__tests__/PublicTournamentLeaderboard.export.test.jsx,"builds PDF with university table when switched and Export clicked","Verify export works for university leaderboard view as well",passed
+Frontend/src/services/__tests__/leaderboardService.test.js,"getLeaderboard calls correct endpoint","Ensure the frontend service calls the right API path and parameters to fetch leaderboard data",passed
+Backend/STMS.Api.Tests/LeaderboardTieHandlingTests.cs,TwoWayTie_FirstPlace_AssignsSamePointsAndNextRankSkips,"Two-way tie for first — both players should have same rank and same points; next player ranks should skip to 3 and receive correct points",not executed
+Backend/STMS.Api.Tests/LeaderboardTieHandlingTests.cs,ThreeWayTie_AssignsSamePointsToAllAndNextRankSkipsTo4,"Three-way tie for first — all three should have same points/rank; next position should be rank 4 with expected points",not executed
+Backend/STMS.Api.Tests/LeaderboardTieHandlingTests.cs,MultipleEvents_TiesAcrossEvents_AggregatePointsCorrectly,"Ties in different events should aggregate total points correctly across events and rank accordingly",not executed
+Backend/STMS.Api.Tests/LeaderboardTieHandlingTests.cs,TieAtBottom_NoPointsLost_AllPlayersPresent,"Tie at bottom — players should share same rank/points and total sum of points should equal expected (no points lost)",not executed
+Backend/STMS.Api.Tests/PointUpdateLogicTests.cs,SingleRankChange_UpdatesPointsCorrectly,"Unit check: when a single player's rank changes, points delta calculation uses the points table (1st=10,2nd=8,...)",not executed
+Backend/STMS.Api.Tests/PointUpdateLogicTests.cs,MultipleRankChanges_UpdatesPointsCorrectly,"Validate point deltas when several players' ranks change after an event",not executed
+Backend/STMS.Api.Tests/RankAssignmentLogicTests.cs,Timings_AutomaticRankAssignment_WorksCorrectly,"Ensure ranks implied by timings ordering are correct (sanity check of rank assignment)",not executed
+Backend/STMS.Api.Tests/RankDatabaseOrderTests.cs,Timings_ImpliedRankOrder_IsCorrectInDatabase,"Verify database-ordered timings imply correct rank order (integration with EF in-memory)",not executed
+Backend/STMS.Api.Tests/LeaderboardAccuracyTests.cs,Leaderboard_ReflectsAccurateOrderAndTotals_AfterPointUpdates,"Simulate point updates and assert leaderboard is correctly ordered with expected totals",not executed
+Backend/STMS.Api.Tests/LeaderboardCategoryAccuracyTests.cs,Leaderboard_AccurateForAllCategories,"Aggregate per-category points and confirm overall totals and presence (includes tied totals case)",not executed
+Backend/STMS.Api.Tests/PublicPagesUITests.cs,PublicPages_PublicFlowExistingTournament,"Full public-page navigation; includes logic to click export button and poll download folder for PDFs (diagnostic logs and asserts)",not executed
+Backend/STMS.Api.Tests/PublicPagesUITests.cs,PublicPages_ViewOnlyFlow,"Recording helper flow that navigates public pages and optionally triggers export (soft-skip if env not set)",not executed

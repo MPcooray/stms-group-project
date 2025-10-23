@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "dgSpecHash": "g1yA/jRHLYs=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Cooray\\OneDrive\\Desktop\\stms\\tools\\selenium-export-runner\\SeleniumExportRunner.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Cooray\\.nuget\\packages\\newtonsoft.json\\13.0.1\\newtonsoft.json.13.0.1.nupkg.sha512",
+    "C:\\Users\\Cooray\\.nuget\\packages\\selenium.webdriver\\4.11.0\\selenium.webdriver.4.11.0.nupkg.sha512",
+    "C:\\Users\\Cooray\\.nuget\\packages\\selenium.webdriver.chromedriver\\117.0.5938.8800\\selenium.webdriver.chromedriver.117.0.5938.8800.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1603",
+      "level": "Warning",
+      "message": "SeleniumExportRunner depends on Selenium.WebDriver.ChromeDriver (>= 117.0.5938.8100) but Selenium.WebDriver.ChromeDriver 117.0.5938.8100 was not found. Selenium.WebDriver.ChromeDriver 117.0.5938.8800 was resolved instead.",
+      "projectPath": "C:\\Users\\Cooray\\OneDrive\\Desktop\\stms\\tools\\selenium-export-runner\\SeleniumExportRunner.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Cooray\\OneDrive\\Desktop\\stms\\tools\\selenium-export-runner\\SeleniumExportRunner.csproj",
+      "libraryId": "Selenium.WebDriver.ChromeDriver",
+      "targetGraphs": [
+        "net9.0"
+      ]
+    }
+  ]
+}
