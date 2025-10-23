@@ -1,5 +1,5 @@
-import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from 'vitest/config'
+import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
@@ -8,7 +8,12 @@ export default defineConfig({
     setupFiles: './src/setupTests.js',
     globals: true,
     coverage: {
-      reporter: ['text', 'lcov'],
+      provider: 'v8',
+      reporter: ['text', 'lcov', 'html'],
+      reportsDirectory: 'coverage',
+      all: true,
+      include: ['src/**/*.js', 'src/**/*.jsx'],
+      exclude: ['src/**/__tests__/**', 'src/setupTests.js']
     }
   }
-});
+})

@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="4c75ac6c-63e2-47ac-971a-6453de9b811c" name="Cooray@MANULA-PC 2025-10-22 23:25:04" runUser="MANULA-PC\Cooray" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2025-10-22T23:25:04.3559343+05:30" queuing="2025-10-22T23:25:04.3559348+05:30" start="2025-10-22T23:22:58.9659908+05:30" finish="2025-10-22T23:25:04.3874332+05:30" />
+  <TestSettings name="default" id="372cd3b2-7ac6-48c4-8f56-7f39a1296945">
+    <Deployment runDeploymentRoot="Cooray_MANULA-PC_2025-10-22_23_25_04" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="8b57015c-db92-4165-83aa-81077349e42b" testId="5a9e8cdd-c9d8-716d-29b5-a8320e9da762" testName="Public pages flow (slow visible)" computerName="MANULA-PC" duration="00:02:04.6278533" startTime="2025-10-22T23:25:04.1862275+05:30" endTime="2025-10-22T23:25:04.1862601+05:30" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8b57015c-db92-4165-83aa-81077349e42b">
+      <Output>
+        <ErrorInfo>
+          <Message>OpenQA.Selenium.WebDriverTimeoutException : Timed out after 120 seconds</Message>
+          <StackTrace>   at OpenQA.Selenium.Support.UI.DefaultWait`1.ThrowTimeoutException(String exceptionMessage, Exception lastException)&#xD;
+   at OpenQA.Selenium.Support.UI.DefaultWait`1.Until[TResult](Func`2 condition, CancellationToken token)&#xD;
+   at OpenQA.Selenium.Support.UI.DefaultWait`1.Until[TResult](Func`2 condition)&#xD;
+   at STMS.Api.Tests.PublicPagesUITests.PublicPages_PublicFlowExistingTournament() in C:\Users\Cooray\OneDrive\Desktop\stms\Backend\STMS.Api.Tests\PublicPagesUITests.cs:line 304&#xD;
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="Public pages flow (slow visible)" storage="c:\users\cooray\onedrive\desktop\stms\backend\stms.api.tests\bin\debug\net9.0\stms.api.tests.dll" id="5a9e8cdd-c9d8-716d-29b5-a8320e9da762">
+      <Execution id="8b57015c-db92-4165-83aa-81077349e42b" />
+      <TestMethod codeBase="C:\Users\Cooray\OneDrive\Desktop\stms\Backend\STMS.Api.Tests\bin\Debug\net9.0\STMS.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="STMS.Api.Tests.PublicPagesUITests" name="PublicPages_PublicFlowExistingTournament" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="5a9e8cdd-c9d8-716d-29b5-a8320e9da762" executionId="8b57015c-db92-4165-83aa-81077349e42b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="1" executed="1" passed="0" failed="1" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.0.1+5ebf84cd75 (64-bit .NET 9.0.8)&#xD;
+[xUnit.net 00:00:00.06]   Discovering: STMS.Api.Tests&#xD;
+[xUnit.net 00:00:00.09]   Discovered:  STMS.Api.Tests&#xD;
+[xUnit.net 00:00:00.09]   Starting:    STMS.Api.Tests&#xD;
+[xUnit.net 00:02:04.78]       OpenQA.Selenium.WebDriverTimeoutException : Timed out after 120 seconds&#xD;
+[xUnit.net 00:02:04.78]       Stack Trace:&#xD;
+[xUnit.net 00:02:04.78]            at OpenQA.Selenium.Support.UI.DefaultWait`1.ThrowTimeoutException(String exceptionMessage, Exception lastException)&#xD;
+[xUnit.net 00:02:04.78]            at OpenQA.Selenium.Support.UI.DefaultWait`1.Until[TResult](Func`2 condition, CancellationToken token)&#xD;
+[xUnit.net 00:02:04.78]            at OpenQA.Selenium.Support.UI.DefaultWait`1.Until[TResult](Func`2 condition)&#xD;
+[xUnit.net 00:02:04.78]         C:\Users\Cooray\OneDrive\Desktop\stms\Backend\STMS.Api.Tests\PublicPagesUITests.cs(304,0): at STMS.Api.Tests.PublicPagesUITests.PublicPages_PublicFlowExistingTournament()&#xD;
+[xUnit.net 00:02:04.78]            at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)&#xD;
+[xUnit.net 00:02:04.78]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:02:04.79]   Finished:    STMS.Api.Tests&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="MANULA-PC" outcome="Error" timestamp="2025-10-22T23:25:04.1809128+05:30">
+        <Text>[xUnit.net 00:02:04.77]     Public pages flow (slow visible) [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>
