@@ -5,6 +5,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>98612152-373f-4f11-8898-e2f5b6831750</UserSecretsId>
+    <!-- Disable apphost to avoid locking apphost.exe during test runs on Windows dev machines -->
+    <UseAppHost>false</UseAppHost>
   </PropertyGroup>
 
   <ItemGroup>

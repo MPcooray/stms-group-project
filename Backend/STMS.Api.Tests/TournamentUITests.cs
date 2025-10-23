@@ -5,12 +5,28 @@ using OpenQA.Selenium.Support.UI;
 using Xunit;
 using System;
 using System.Linq;
+using System.IO;
 using System.Collections.ObjectModel;
 
 namespace STMS.Api.Tests
 {
     public class TournamentUITests
     {
+
+        private static IWebDriver CreateDriver()
+        {
+            var downloadDir = Path.Combine(Path.GetTempPath(), "stms-downloads");
+            try { Directory.CreateDirectory(downloadDir); } catch { }
+            var options = new ChromeOptions();
+            // allow downloads without prompt and set directory
+            options.AddUserProfilePreference("download.default_directory", downloadDir);
+            options.AddUserProfilePreference("download.prompt_for_download", false);
+            options.AddUserProfilePreference("plugins.always_open_pdf_externally", true);
+            options.AddUserProfilePreference("safebrowsing.enabled", true);
+            // use a visible browser for easier debugging; remove Headless if present
+            // options.AddArgument("--headless=new"); // avoid headless for downloads unless configured
+            return new ChromeDriver(options);
+        }
 
        // ---------- Helpers ----------
         private static WebDriverWait MakeWait(IWebDriver d, int seconds = 45)
@@ -131,54 +147,149 @@ namespace STMS.Api.Tests
             wait.Until(d => d.FindElements(By.XPath($"//tr[td[contains(.,'{uniName}')]]")).Count > 0);
         }
 
+        private static void FillLogin(IWebDriver driver, WebDriverWait wait, string email = "admin@stms.com", string password = "Admin#123")
+        {
+            // Robust login helper: try click+SendKeys, then JS-value-and-dispatch, then verify and submit
+            IWebElement emailEl = null!;
+            IWebElement pwdEl = null!;
+            try
+            {
+                emailEl = wait.Until(d => d.FindElement(By.CssSelector("input[name='email']")));
+                pwdEl = wait.Until(d => d.FindElement(By.Id("password")));
+            }
+            catch
+            {
+                // let exception surface to caller
+                throw;
+            }
+
+            try
+            {
+                // Try normal interaction first
+                emailEl.Click(); emailEl.Clear(); emailEl.SendKeys(email);
+                pwdEl.Click(); pwdEl.Clear(); pwdEl.SendKeys(password);
+            }
+            catch { /* ignore and try JS fallback */ }
+
+            try
+            {
+                // Ensure React controlled inputs receive the change by dispatching both input and change
+                ((IJavaScriptExecutor)driver).ExecuteScript(@"
+                    arguments[0].value = arguments[2];
+                    arguments[0].dispatchEvent(new Event('input', { bubbles: true }));
+                    arguments[0].dispatchEvent(new Event('change', { bubbles: true }));
+                    arguments[1].value = arguments[3];
+                    arguments[1].dispatchEvent(new Event('input', { bubbles: true }));
+                    arguments[1].dispatchEvent(new Event('change', { bubbles: true }));
+                ", emailEl, pwdEl, email, password);
+            }
+            catch { /* ignore */ }
+
+            // Verify values; if not matching, attempt SendKeys again
+            try
+            {
+                var actualEmail = ((IJavaScriptExecutor)driver).ExecuteScript("return arguments[0].value;", emailEl) as string ?? "";
+                var actualPwd = ((IJavaScriptExecutor)driver).ExecuteScript("return arguments[0].value;", pwdEl) as string ?? "";
+                if (actualEmail != email || actualPwd != password)
+                {
+                    try { emailEl.Clear(); emailEl.SendKeys(email); pwdEl.Clear(); pwdEl.SendKeys(password); } catch { }
+                }
+            }
+            catch { /* ignore */ }
+
+            // Submit login: try id first, then button text, allow longer wait
+            IWebElement loginBtn = null!;
+            try
+            {
+                loginBtn = new WebDriverWait(driver, TimeSpan.FromSeconds(20)).Until(d =>
+                {
+                    try { return d.FindElement(By.Id("loginButton")); } catch { }
+                    try
+                    {
+                        var btn = d.FindElements(By.XPath("//button[normalize-space(.)='Sign In' or normalize-space(.)='Signing in…']")).FirstOrDefault();
+                        if (btn != null) return btn;
+                    }
+                    catch { }
+                    return null;
+                });
+                loginBtn.Click();
+            }
+            catch (WebDriverTimeoutException)
+            {
+                // Dump a small page-source snippet for debugging
+                try
+                {
+                    var src = driver.PageSource;
+                    var snippet = src.Length > 4000 ? src.Substring(0, 4000) : src;
+                    Console.WriteLine("[DEBUG] Login button not found. Page source snippet:\n" + snippet);
+                }
+                catch { }
+                throw;
+            }
+
+            // Wait for redirect to dashboard or tournaments
+            wait.Until(d => d.Url.Contains("/dashboard") || d.Url.Contains("/tournaments"));
+        }
+
         // Nadil
         [Fact]
         public void TournamentList_ReflectsChanges()
         {
-            using var driver = new ChromeDriver();
+            using var driver = CreateDriver();
 
             driver.Navigate().GoToUrl("http://localhost:3000/login/");
-            System.Threading.Thread.Sleep(3000);
-            IWebElement? emailInput = null;
-            for (int i = 0; i < 10; i++)
-            {
-                try { emailInput = driver.FindElement(By.CssSelector("input[placeholder='admin@stms.com']")); break; }
-                catch (NoSuchElementException) { System.Threading.Thread.Sleep(200); }
-            }
-            Assert.NotNull(emailInput);
-            System.Threading.Thread.Sleep(500);
-            driver.FindElement(By.Id("loginButton")).Click();
-            System.Threading.Thread.Sleep(1000);
+            // Use robust waits and stable selectors for login inputs (login placeholder changed in frontend)
+            var shortWait = MakeWait(driver, 15);
+            // FillLogin will both populate inputs and submit, and wait for redirect
+            FillLogin(driver, shortWait);
 
             driver.Navigate().GoToUrl("http://localhost:3000/tournaments");
             System.Threading.Thread.Sleep(1000);
 
-            driver.FindElement(By.Id("tournamentName")).SendKeys("Selenium Tournament");
-            driver.FindElement(By.Id("tournamentVenue")).SendKeys("Selenium Venue");
-            var dateInput = driver.FindElement(By.Id("tournamentDate"));
+            // Use a unique tournament name per test run to avoid matching older rows
+            var uniqueName = "Selenium Tournament " + DateTime.UtcNow.ToString("HHmmssfff");
+            // Wait for tournament form to be present, then fill and submit
+            var tournamentNameInput = shortWait.Until(d => d.FindElement(By.Id("tournamentName")));
+            tournamentNameInput.Clear();
+            tournamentNameInput.SendKeys(uniqueName);
+            shortWait.Until(d => d.FindElement(By.Id("tournamentVenue"))).SendKeys("Selenium Venue");
+            var dateInput = shortWait.Until(d => d.FindElement(By.Id("tournamentDate")));
             ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].value = '2025-09-12';", dateInput);
-            driver.FindElement(By.Id("saveTournamentButton")).Click();
-            System.Threading.Thread.Sleep(3000);
-            try { var err = driver.FindElement(By.ClassName("error")); Console.WriteLine("Form error: " + err.Text); } catch { }
-
-            Assert.Contains("Selenium Tournament", driver.PageSource);
+            shortWait.Until(d => d.FindElement(By.Id("saveTournamentButton"))).Click();
+            // Wait until the created tournament (uniqueName) appears in the All Tournaments list
+            shortWait.Until(d => d.PageSource.Contains(uniqueName));
 
             Console.WriteLine(driver.PageSource);
             IWebElement? editButton = null;
             for (int i = 0; i < 10; i++)
             {
-                try { editButton = driver.FindElement(By.XPath("//tr[td[contains(text(),'Selenium Tournament')]]//button[contains(text(),'Edit')]")); break; }
+                try { editButton = driver.FindElement(By.XPath($"//tr[td[contains(text(),'{uniqueName}')]]//button[contains(text(),'Edit')]")); break; }
                 catch (NoSuchElementException) { System.Threading.Thread.Sleep(500); }
             }
             Assert.NotNull(editButton);
             editButton!.Click();
-            driver.FindElement(By.Id("tournamentName")).Clear();
-            System.Threading.Thread.Sleep(500);
-            driver.FindElement(By.Id("tournamentName")).SendKeys("Selenium Tournament Updated");
-            System.Threading.Thread.Sleep(500);
-            driver.FindElement(By.Id("saveTournamentButton")).Click();
-            System.Threading.Thread.Sleep(500);
-
+            // Wait for the form/card heading to indicate Edit mode (heading may be a sibling of the form)
+            shortWait.Until(d =>
+            {
+                try
+                {
+                    var h = d.FindElements(By.CssSelector(".card h3")).FirstOrDefault();
+                    if (h == null) return false;
+                    return h.Text.Contains("Edit Tournament", StringComparison.OrdinalIgnoreCase)
+                        || h.Text.Contains("Edit", StringComparison.OrdinalIgnoreCase);
+                }
+                catch { return false; }
+            });
+            var nameInput = shortWait.Until(d => d.FindElement(By.Id("tournamentName")));
+            // Use JS to set the value and dispatch events to ensure React controlled input updates
+            ((IJavaScriptExecutor)driver).ExecuteScript(@"
+                arguments[0].value = arguments[1];
+                arguments[0].dispatchEvent(new Event('input', { bubbles: true }));
+                arguments[0].dispatchEvent(new Event('change', { bubbles: true }));
+            ", nameInput, "Selenium Tournament Updated");
+            // Click save and wait for the updated name to appear in the All Tournaments list
+            shortWait.Until(d => d.FindElement(By.Id("saveTournamentButton"))).Click();
+            shortWait.Until(d => d.PageSource.Contains("Selenium Tournament Updated"));
             Assert.Contains("Selenium Tournament Updated", driver.PageSource);
             System.Threading.Thread.Sleep(2000);
 
@@ -221,20 +332,12 @@ namespace STMS.Api.Tests
         [Fact]
         public void ResultsFlow_TimingsToLeaderboardAndResults_E2E()
         {
-            using var driver = new ChromeDriver();
+            using var driver = CreateDriver();
             var wait = MakeWait(driver, 30);
 
             // Login
             driver.Navigate().GoToUrl("http://localhost:3000/login/");
-            wait.Until(d => d.FindElement(By.Id("loginButton"))).Click();
-            try
-            {
-                wait.Until(d => d.Url.Contains("/dashboard"));
-            }
-            catch (OpenQA.Selenium.WebDriverTimeoutException)
-            {
-                // tolerate if already logged in
-            }
+            FillLogin(driver, wait);
 
             // Create tournament
             driver.Navigate().GoToUrl("http://localhost:3000/tournaments");
@@ -429,13 +532,12 @@ namespace STMS.Api.Tests
         [Fact]
         public void UniversitiesPlayers_CRUD_AndCascadeDelete()
         {
-            using var driver = new ChromeDriver();
+            using var driver = CreateDriver();
             var wait = MakeWait(driver);
 
-            // Login
+            // Login (use FillLogin to populate and submit)
             driver.Navigate().GoToUrl("http://localhost:3000/login/");
-            wait.Until(d => d.FindElement(By.Id("loginButton"))).Click();
-            wait.Until(d => d.Url.Contains("/dashboard"));
+            FillLogin(driver, wait);
 
             // Create tournament
             driver.Navigate().GoToUrl("http://localhost:3000/tournaments");
@@ -474,8 +576,8 @@ namespace STMS.Api.Tests
 
             wait.Until(d => d.FindElement(By.XPath("//tr[td[contains(.,'Delta Prime')]]//button[contains(.,'Delete')]"))).Click();
             driver.SwitchTo().Alert().Accept();
-            TinyPause(400);
-            Assert.DoesNotContain("Delta Prime", driver.PageSource);
+            // Wait until the deleted player no longer appears in the page source to avoid race conditions
+            wait.Until(d => !d.PageSource.Contains("Delta Prime"));
 
             // Back to Universities and delete Uni X (cascade)
             driver.Navigate().Back();
@@ -486,7 +588,8 @@ namespace STMS.Api.Tests
             // Dashboard --> All Players (verify Uni X gone)
             driver.Navigate().GoToUrl("http://localhost:3000/dashboard");
             WaitRowLinkByText(driver, wait, tName, "All Players", partial: true).Click();
-            Assert.DoesNotContain("Uni X", driver.PageSource);
+            // Wait until the University is removed from the All Players view
+            wait.Until(d => !d.PageSource.Contains("Uni X"));
 
             driver.Quit();
         }
